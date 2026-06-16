@@ -5,16 +5,59 @@ import { FieldShape, FieldSize, FoodQuantity, GameSpeed, ObstacleQuantity } from
 
 export class MenuUI {
     private container: HTMLElement;
+    private menuKeys: (keyof GameSettings)[] = ['fieldSize', 'fieldShape', 'isInfinite', 'foodQuantity', 'diverseFruits', 'woodenBoxes', 'ironBoxes', 'teleports', 'biteTail', 'destructionMode', 'speed'];
+    private selectedMenuIdx: number = -1;
 
     constructor() {
         this.container = document.getElementById('ui-layer')!;
         this.renderMenu();
         
         EventBus.on('game_over', (data: { score: number, playTime?: number }) => {
-            setTimeout(() => this.renderGameOver(data.score, data.playTime), 1000);
+            this.renderGameOver(data.score, data.playTime);
         });
-        EventBus.on('game_started', () => this.container.innerHTML = '');
-        EventBus.on('back_to_menu', () => this.renderMenu());
+        EventBus.on('game_started', () => {
+            this.container.innerHTML = '';
+            this.selectedMenuIdx = -1;
+        });
+        EventBus.on('back_to_menu', () => {
+            this.renderMenu();
+        });
+
+        window.addEventListener('keydown', this.handleKeyDown);
+    }
+
+    private handleKeyDown = (e: KeyboardEvent) => {
+        if (document.querySelector('.game-over')) return; // Skip if game over
+        const isMenu = document.querySelector('.glass-panel:not(.game-over)');
+        if (!isMenu) return;
+
+        if (e.target instanceof HTMLInputElement) return;
+
+        if (e.key === 'ArrowDown') {
+            this.selectedMenuIdx = Math.min(this.menuKeys.length - 1, this.selectedMenuIdx + 1);
+            this.highlightRow();
+        } else if (e.key === 'ArrowUp') {
+            this.selectedMenuIdx = Math.max(0, this.selectedMenuIdx - 1);
+            this.highlightRow();
+        } else if (e.key === 'ArrowLeft' && this.selectedMenuIdx >= 0) {
+            this.handleArrowClick(this.menuKeys[this.selectedMenuIdx], 'prev');
+        } else if (e.key === 'ArrowRight' && this.selectedMenuIdx >= 0) {
+            this.handleArrowClick(this.menuKeys[this.selectedMenuIdx], 'next');
+        } else if (e.key === 'Enter') {
+            EventBus.emit('start_game');
+        }
+    };
+
+    private highlightRow() {
+        this.container.querySelectorAll('.setting-row').forEach(row => row.classList.remove('selected'));
+        if (this.selectedMenuIdx >= 0) {
+            const key = this.menuKeys[this.selectedMenuIdx];
+            const row = document.getElementById(`row-${String(key)}`);
+            if (row) {
+                row.classList.add('selected');
+                row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
     }
 
     private renderMenu() {
@@ -85,7 +128,7 @@ export class MenuUI {
         }
 
         return `
-            <div class="setting-row">
+            <div class="setting-row" id="row-${String(key)}">
                 <label>${label}</label>
                 ${control}
             </div>

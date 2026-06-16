@@ -22,6 +22,8 @@ export class GameManager {
     private playTime: number = 0;
     private gameLoop: GameLoop;
     private moveTimer: number = 0;
+    private explosionIndex: number = -1;
+    private explosionTimer: number = 0;
 
     constructor(private renderer: Renderer) {
         this.inputManager = new InputManager();
@@ -35,6 +37,19 @@ export class GameManager {
         EventBus.on('resume_game', () => this.togglePause());
         EventBus.on('restart_game', () => this.start());
         EventBus.on('back_to_menu', () => this.state = GameState.MENU);
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'p') {
+                if (this.state === GameState.PLAYING || this.state === GameState.PAUSED) {
+                    this.togglePause();
+                }
+            }
+            if (e.key.toLowerCase() === 'r') {
+                if (this.state === GameState.GAME_OVER || this.state === GameState.PAUSED || this.state === GameState.PLAYING) {
+                    EventBus.emit('restart_game');
+                }
+            }
+        });
     }
 
     start() {
@@ -52,6 +67,7 @@ export class GameManager {
         this.score = 0;
         this.playTime = 0;
         this.moveTimer = 0;
+        this.explosionIndex = -1;
         
         this.generateEntities();
         
@@ -168,6 +184,27 @@ export class GameManager {
     update = (dt: number) => {
         if (this.state === GameState.MENU) return;
         this.renderer.particles.update(dt);
+
+        if (this.state === GameState.GAME_OVER && this.explosionIndex >= 0) {
+            const body = this.snake.getBody();
+            if (this.explosionIndex < body.length) {
+                this.explosionTimer += dt;
+                while (this.explosionTimer >= 30 && this.explosionIndex < body.length) {
+                    this.explosionTimer -= 30;
+                    const part = body[this.explosionIndex];
+                    this.renderer.particles.emit(part, '#ff0055', 10);
+                    this.renderer.particles.emit(part, '#ffaa00', 5);
+                    if (this.explosionIndex % 4 === 0) AudioManager.playHit();
+                    this.explosionIndex++;
+                }
+                
+                if (this.explosionIndex >= body.length) {
+                    setTimeout(() => {
+                        EventBus.emit('game_over', { score: this.score, playTime: Math.floor(this.playTime / 1000) });
+                    }, 500);
+                }
+            }
+        }
         
         if (this.state === GameState.PLAYING) {
             if (!this.inputManager.isMoving()) return;
@@ -362,14 +399,9 @@ export class GameManager {
         if (this.state === GameState.GAME_OVER) return;
         this.state = GameState.GAME_OVER;
         
-        this.snake.getBody().forEach(part => {
-            this.renderer.particles.emit(part, '#ff0055', 15); // Red explosion
-            this.renderer.particles.emit(part, '#ffaa00', 8);  // Orange/yellow sparks
-        });
-        
-        AudioManager.playHit();
+        this.explosionIndex = 0;
+        this.explosionTimer = 0;
         this.screenShake();
-        EventBus.emit('game_over', { score: this.score, playTime: Math.floor(this.playTime / 1000) });
     }
 
     render = (_interpolation: number) => {
@@ -382,11 +414,12 @@ export class GameManager {
             this.renderer.drawObstacles(this.obstacles);
             this.renderer.drawFood(this.foods);
             
-            if (this.snake && this.state === GameState.PLAYING) {
+            if (this.snake && (this.state === GameState.PLAYING || this.state === GameState.GAME_OVER)) {
                 const settings = Settings.get();
                 const speed = GameSpeedMap[settings.speed];
-                const snakeInterpolation = this.inputManager.isMoving() ? this.moveTimer / speed : 0;
-                this.renderer.drawSnake(this.snake, snakeInterpolation, this.mapManager.getWalkableCells());
+                const snakeInterpolation = (this.state === GameState.PLAYING && this.inputManager.isMoving()) ? this.moveTimer / speed : 0;
+                const startIndex = this.state === GameState.GAME_OVER ? Math.max(0, this.explosionIndex) : 0;
+                this.renderer.drawSnake(this.snake, snakeInterpolation, this.mapManager.getWalkableCells(), startIndex);
             }
         }
         

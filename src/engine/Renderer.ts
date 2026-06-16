@@ -102,7 +102,7 @@ export class Renderer {
         this.particles.draw(this.ctx, offsetX, offsetY, this.cellSize);
     }
 
-    drawSnake(snake: Snake, interpolation: number, walkableCells: Set<string>) {
+    drawSnake(snake: Snake, interpolation: number, walkableCells: Set<string>, startIndex: number = 0) {
         const offsetX = (this.canvas.width - this.width * this.cellSize) / 2;
         const offsetY = (this.canvas.height - this.height * this.cellSize) / 2;
         const body = snake.getBody();
@@ -113,7 +113,7 @@ export class Renderer {
 
         const t = Math.max(0, Math.min(1, interpolation));
 
-        for (let i = 0; i < body.length; i++) {
+        for (let i = startIndex; i < body.length; i++) {
             const curr = body[i];
             const prev = prevBody[i] || curr;
 
