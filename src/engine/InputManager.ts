@@ -12,15 +12,19 @@ export class InputManager {
     private inputQueue: Direction[] = [];
     private touchStart: Point | null = null;
     private hasMoved: boolean = false;
+    private isSprintingActive: boolean = false;
 
     constructor() {
         window.addEventListener('keydown', this.handleKeyDown);
+        window.addEventListener('keyup', this.handleKeyUp);
         window.addEventListener('touchstart', this.handleTouchStart, { passive: false });
         window.addEventListener('touchend', this.handleTouchEnd, { passive: false });
         window.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
     }
 
     private handleKeyDown = (e: KeyboardEvent) => {
+        if (e.shiftKey) this.isSprintingActive = true;
+
         let newDir: Direction | null = null;
         switch (e.key) {
             case 'ArrowUp':
@@ -40,6 +44,10 @@ export class InputManager {
         if (newDir !== null) {
             this.enqueueDirection(newDir);
         }
+    };
+
+    private handleKeyUp = (e: KeyboardEvent) => {
+        if (e.key === 'Shift') this.isSprintingActive = false;
     };
 
     private enqueueDirection(newDir: Direction) {
@@ -109,9 +117,18 @@ export class InputManager {
         return this.hasMoved;
     }
 
+    isSprinting(): boolean {
+        return this.isSprintingActive;
+    }
+
+    clearQueue() {
+        this.inputQueue = [];
+    }
+
     reset() {
         this.currentDirection = Direction.RIGHT;
         this.inputQueue = [];
         this.hasMoved = false;
+        this.isSprintingActive = false;
     }
 }

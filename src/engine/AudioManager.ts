@@ -55,6 +55,12 @@ export class AudioManager {
         setTimeout(() => this.playTone(1200, 'sine', 0.4, 0.1), 300);
     }
 
+    static playGoldenApple() {
+        this.playTone(880, 'sine', 0.1, 0.1);
+        setTimeout(() => this.playTone(1320, 'sine', 0.1, 0.08), 50);
+        setTimeout(() => this.playTone(1760, 'sine', 0.2, 0.05), 100);
+    }
+
     static playHit() {
         this.playTone(150, 'sawtooth', 0.3, 0.2);
         this.playTone(100, 'square', 0.2, 0.15);

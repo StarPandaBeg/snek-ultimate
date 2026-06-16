@@ -33,6 +33,7 @@ export class GameManager {
   private explosionIndex: number = -1;
   private explosionTimer: number = 0;
   private speedBoostTimer: number = 0;
+  private slowDownTimer: number = 0;
 
   constructor(private renderer: Renderer) {
     this.inputManager = new InputManager();
@@ -84,6 +85,7 @@ export class GameManager {
     this.moveTimer = 0;
     this.explosionIndex = -1;
     this.speedBoostTimer = 0;
+    this.slowDownTimer = 0;
 
     this.generateEntities();
 
@@ -163,11 +165,15 @@ export class GameManager {
 
       let pos = this.mapManager.getRandomWalkableCell();
 
-      // For watermelon (2x2), we need 4 empty cells
+      // For watermelon (2x2), we need 4 empty cells and NOT on edges
       if (type === FoodType.WATERMELON) {
         let found = false;
-        for (let attempts = 0; attempts < 50; attempts++) {
+        const { width, height } = this.mapManager.getDimensions();
+        for (let attempts = 0; attempts < 100; attempts++) {
           pos = this.mapManager.getRandomWalkableCell();
+          // Avoid edges for 2x2
+          if (pos.x >= width - 1 || pos.y >= height - 1) continue;
+
           if (
             this.isCellEmpty(pos) &&
             this.isCellEmpty({ x: pos.x + 1, y: pos.y }) &&
@@ -183,10 +189,6 @@ export class GameManager {
       } else if (type === FoodType.GOLDEN_APPLE) {
         if (this.isCellEmpty(pos)) {
           this.foods.push({ pos, type, lifeTime: 8000 }); // 8 seconds lifetime
-        }
-      } else if (type === FoodType.POISON_MUSHROOM) {
-        if (this.isCellEmpty(pos)) {
-          this.foods.push({ pos, type, lifeTime: 10000 }); // 10 seconds lifetime
         }
       } else {
         if (this.isCellEmpty(pos)) {
@@ -238,13 +240,14 @@ export class GameManager {
     if (this.state === GameState.PLAYING) {
       this.state = GameState.PAUSED;
       EventBus.emit("ui_update", {
-        score: this.score,
+        score: Math.floor(this.score),
         highscore: this.highscore,
         length: this.snake.getBody().length,
         playTime: Math.floor(this.playTime / 1000),
       });
     } else if (this.state === GameState.PAUSED) {
       this.state = GameState.PLAYING;
+      this.inputManager.clearQueue(); // Don't buffer keys from pause
     }
   }
 
@@ -268,7 +271,7 @@ export class GameManager {
         if (this.explosionIndex >= body.length) {
           setTimeout(() => {
             EventBus.emit("game_over", {
-              score: this.score,
+              score: Math.floor(this.score),
               playTime: Math.floor(this.playTime / 1000),
             });
           }, 500);
@@ -284,6 +287,9 @@ export class GameManager {
       if (this.speedBoostTimer > 0) {
         this.speedBoostTimer -= dt;
       }
+      if (this.slowDownTimer > 0) {
+        this.slowDownTimer -= dt;
+      }
 
       // Update food lifetimes
       for (let i = this.foods.length - 1; i >= 0; i--) {
@@ -298,7 +304,16 @@ export class GameManager {
 
       const settings = Settings.get();
       const baseSpeed = GameSpeedMap[settings.speed];
-      const speed = this.speedBoostTimer > 0 ? baseSpeed * 0.8 : baseSpeed; // 20% faster
+
+      let speedMultiplier = 1.0;
+      if (this.speedBoostTimer > 0) speedMultiplier *= 0.8;
+      if (this.slowDownTimer > 0) speedMultiplier *= 1.5;
+      if (this.inputManager.isSprinting()) {
+        speedMultiplier *= 0.5;
+        this.score = Math.max(0, this.score - 0.1);
+      }
+
+      const speed = baseSpeed * speedMultiplier;
       this.moveTimer += dt;
 
       if (this.moveTimer >= speed) {
@@ -308,13 +323,22 @@ export class GameManager {
 
       // Emit UI update every frame while playing for smooth time
       EventBus.emit("ui_update", {
-        score: this.score,
+        score: Math.floor(this.score),
         highscore: this.highscore,
         length: this.snake.getBody().length,
         playTime: Math.floor(this.playTime / 1000),
+        status: this.getStatusText(),
       });
     }
   };
+
+  private getStatusText(): string {
+    const statuses = [];
+    if (this.speedBoostTimer > 0) statuses.push("УСКОРЕНИЕ");
+    if (this.slowDownTimer > 0) statuses.push("ЗАМЕДЛЕНИЕ");
+    if (this.inputManager.isSprinting()) statuses.push("СПРИНТ (-ОЧКИ)");
+    return statuses.join(" | ");
+  }
 
   private getNextPosition(
     head: Point,
@@ -426,6 +450,7 @@ export class GameManager {
           this.obstacles.splice(obstacleIdx, 1);
           this.renderer.particles.emit(nextHead!, "#d35400", 10);
           this.score -= 20;
+          this.slowDownTimer = 2000; // 2 seconds slow down
           AudioManager.playHit();
         } else {
           this.gameOver();
@@ -441,6 +466,8 @@ export class GameManager {
     if (selfIdx !== -1) {
       if (settings.biteTail) {
         AudioManager.playHit();
+        const cutLength = this.snake.getBody().length - selfIdx;
+        this.score = Math.max(0, this.score - cutLength * 50);
         this.snake.cutTail(selfIdx);
         this.screenShake();
       } else {
@@ -472,6 +499,8 @@ export class GameManager {
         AudioManager.playPoison();
       } else if (food.type === FoodType.WATERMELON) {
         AudioManager.playWatermelon();
+      } else if (food.type === FoodType.GOLDEN_APPLE) {
+        AudioManager.playGoldenApple();
       } else {
         AudioManager.playEat();
       }
@@ -561,9 +590,7 @@ export class GameManager {
             ? this.moveTimer / speed
             : 0;
         const startIndex =
-          this.state === GameState.GAME_OVER
-            ? Math.max(0, this.explosionIndex)
-            : 0;
+          this.state === GameState.GAME_OVER ? Math.max(0, this.explosionIndex) : 0;
         this.renderer.drawSnake(
           this.snake,
           snakeInterpolation,
