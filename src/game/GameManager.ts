@@ -228,9 +228,6 @@ export class GameManager {
             
             if (this.speedBoostTimer > 0) {
                 this.speedBoostTimer -= dt;
-                if (Math.random() > 0.8) {
-                    this.renderer.particles.emit(this.snake.getHead(), '#00d4ff', 1);
-                }
             }
 
             // Update food lifetimes
