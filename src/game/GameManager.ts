@@ -249,6 +249,9 @@ export class GameManager {
         highscore: this.highscore,
         length: this.snake.getBody().length,
         playTime: Math.floor(this.playTime / 1000),
+        isSprinting: this.inputManager.isSprinting(),
+        isSpedUp: this.speedBoostTimer > 0,
+        isSlowedDown: this.slowDownTimer > 0,
       });
     } else if (this.state === GameState.PAUSED) {
       this.state = GameState.PLAYING;
@@ -314,8 +317,10 @@ export class GameManager {
       if (this.speedBoostTimer > 0) speedMultiplier *= 0.8;
       if (this.slowDownTimer > 0) speedMultiplier *= 1.5;
       if (this.inputManager.isSprinting()) {
-        speedMultiplier *= 0.5;
-        this.score = Math.max(0, this.score - 0.1);
+        speedMultiplier *= 0.7; // Moderate speed boost
+        this.score = Math.max(0, this.score - 0.2); // Continuous drain
+      } else {
+        this.score += 0.02; // Continuous gain
       }
 
       const speed = baseSpeed * speedMultiplier;
@@ -518,9 +523,8 @@ export class GameManager {
     }
 
     this.snake.move(nextHead!);
-    this.score += 1;
     if (this.score > this.highscore) {
-      this.highscore = this.score;
+      this.highscore = Math.floor(this.score);
       localStorage.setItem("snake_highscore", this.highscore.toString());
     }
   }
