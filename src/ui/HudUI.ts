@@ -35,8 +35,9 @@ export class HudUI {
         this.hudElement = document.createElement('div');
         this.hudElement.className = 'hud-container-new';
         this.hudElement.innerHTML = `
+            <div id="status-vignette" class="vignette"></div>
             <div class="hud-left">
-                <div id="hud-status" class="hud-status-text"></div>
+                <div id="hud-status" class="status-container"></div>
             </div>
             <div class="hud-center">
                 <div class="hud-score-label">СЧЕТ</div>
@@ -94,6 +95,7 @@ export class HudUI {
         const lengthEl = document.getElementById('hud-length');
         const timeEl = document.getElementById('hud-time');
         const statusEl = document.getElementById('hud-status');
+        const vignetteEl = document.getElementById('status-vignette');
         
         if (scoreEl) scoreEl.innerText = data.score.toString();
         if (highscoreEl) highscoreEl.innerText = data.highscore.toString();
@@ -113,6 +115,13 @@ export class HudUI {
             
             statusEl.innerHTML = statuses.join('');
             statusEl.style.display = statuses.length > 0 ? 'flex' : 'none';
+        }
+
+        if (vignetteEl) {
+            vignetteEl.className = 'vignette';
+            if (data.isSprinting) vignetteEl.classList.add('vignette-sprint');
+            else if (data.isSpedUp) vignetteEl.classList.add('vignette-speed');
+            else if (data.isSlowedDown) vignetteEl.classList.add('vignette-slow');
         }
     }
 

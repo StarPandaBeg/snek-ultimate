@@ -266,12 +266,45 @@ button.primary:hover {
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.85);
     padding: 15px 35px 20px;
     border-radius: 0 0 20px 20px;
     border: 2px solid var(--glass-border);
     border-top: none;
-    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.6);
+}
+
+.status-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+/* Vignette Effects */
+.vignette {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    transition: box-shadow 0.5s ease;
+    z-index: 1;
+}
+
+.vignette-sprint {
+    box-shadow: inset 0 0 100px rgba(0, 212, 255, 0.3);
+}
+
+.vignette-speed {
+    box-shadow: inset 0 0 100px rgba(0, 255, 136, 0.3);
+}
+
+.vignette-slow {
+    box-shadow: inset 0 0 100px rgba(255, 0, 85, 0.3);
 }
 
 .hud-score-label {

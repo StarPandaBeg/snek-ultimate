@@ -317,10 +317,10 @@ export class GameManager {
       if (this.speedBoostTimer > 0) speedMultiplier *= 0.8;
       if (this.slowDownTimer > 0) speedMultiplier *= 1.5;
       if (this.inputManager.isSprinting()) {
-        speedMultiplier *= 0.7; // Moderate speed boost
-        this.score = Math.max(0, this.score - 0.2); // Continuous drain
+        speedMultiplier *= 0.75; // Balanced speed boost
+        this.score = Math.max(0, this.score - 0.5); // Faster drain for better UI feedback
       } else {
-        this.score += 0.02; // Continuous gain
+        this.score += 0.05; // Visible steady gain
       }
 
       const speed = baseSpeed * speedMultiplier;

@@ -83,7 +83,7 @@ export class MenuUI {
   }
 
   private renderMenu() {
-      this.container.innerHTML = `
+    this.container.innerHTML = `
           <div class="glass-panel fade-in">
               <div class="logo-container">
                   <img src="./assets/logo.png" alt="Snake Ultimate" class="logo">
@@ -153,7 +153,7 @@ export class MenuUI {
                         <div class="tutorial-item"><img src="./assets/food_banana.png"> <span>Банан: +3 длина, +10 очков</span></div>
                         <div class="tutorial-item"><img src="./assets/food_golden_apple.png"> <span>Золотое яблоко: +10 длина, +100 очков (появляется на 8 секунд)</span></div>
                         <div class="tutorial-item"><img src="./assets/food_watermelon.png"> <span>Арбуз: Ускорение на 10 сек, +50 очков (появляется на 8 секунд)</span></div>
-                        <div class="tutorial-item"><img src="./assets/food_poison.png"> <span>Ядовитый гриб: -2 длина, -50 очков</span></div>
+                        <div class="tutorial-item"><img src="./assets/food_poison.png"> <span>Баклажан: -2 длина, -50 очков</span></div>
                     </div>
 
                     <!-- Objects -->
