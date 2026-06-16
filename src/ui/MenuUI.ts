@@ -83,11 +83,11 @@ export class MenuUI {
   }
 
   private renderMenu() {
-    this.container.innerHTML = `
-            <div class="glass-panel fade-in">
-                <div class="logo-container">
-                    <img src="./src/assets/logo.png" alt="Snake Ultimate" class="logo">
-                </div>
+      this.container.innerHTML = `
+          <div class="glass-panel fade-in">
+              <div class="logo-container">
+                  <img src="./assets/logo.png" alt="Snake Ultimate" class="logo">
+              </div>
                 
                 <div class="menu-sections">
                     <!-- Column 1: Game & World -->
@@ -148,20 +148,20 @@ export class MenuUI {
                     <!-- Fruits -->
                     <div class="tutorial-section">
                         <div class="section-title">ФРУКТЫ</div>
-                        <div class="tutorial-item"><img src="./src/assets/food_apple.png"> <span>Яблоко: +1 длина, +10 очков</span></div>
-                        <div class="tutorial-item"><img src="./src/assets/food_cherry.png"> <span>Вишня: +2 длина, +10 очков</span></div>
-                        <div class="tutorial-item"><img src="./src/assets/food_banana.png"> <span>Банан: +3 длина, +10 очков</span></div>
-                        <div class="tutorial-item"><img src="./src/assets/food_golden_apple.png"> <span>Золотое яблоко: +10 длина, +100 очков (появляется на 8 секунд)</span></div>
-                        <div class="tutorial-item"><img src="./src/assets/food_watermelon.png"> <span>Арбуз: Ускорение на 10 сек, +50 очков (появляется на 8 секунд)</span></div>
-                        <div class="tutorial-item"><img src="./src/assets/food_poison.png"> <span>Ядовитый гриб: -2 длина, -50 очков</span></div>
+                        <div class="tutorial-item"><img src="./assets/food_apple.png"> <span>Яблоко: +1 длина, +10 очков</span></div>
+                        <div class="tutorial-item"><img src="./assets/food_cherry.png"> <span>Вишня: +2 длина, +10 очков</span></div>
+                        <div class="tutorial-item"><img src="./assets/food_banana.png"> <span>Банан: +3 длина, +10 очков</span></div>
+                        <div class="tutorial-item"><img src="./assets/food_golden_apple.png"> <span>Золотое яблоко: +10 длина, +100 очков (появляется на 8 секунд)</span></div>
+                        <div class="tutorial-item"><img src="./assets/food_watermelon.png"> <span>Арбуз: Ускорение на 10 сек, +50 очков (появляется на 8 секунд)</span></div>
+                        <div class="tutorial-item"><img src="./assets/food_poison.png"> <span>Ядовитый гриб: -2 длина, -50 очков</span></div>
                     </div>
 
                     <!-- Objects -->
                     <div class="tutorial-section">
                         <div class="section-title">ОБЪЕКТЫ</div>
-                        <div class="tutorial-item"><img src="./src/assets/crate_wood.png"> <span>Пеньки: -1 длина хвоста, -20 очков, пенек ломается</span></div>
-                        <div class="tutorial-item"><img src="./src/assets/crate_metal.png"> <span>Камни: Смертельное столкновение</span></div>
-                        <div class="tutorial-item"><img src="./src/assets/portal_base.png"> <span>Порталы: Перемещают змейку в парный портал того же цвета</span></div>
+                        <div class="tutorial-item"><img src="./assets/crate_wood.png"> <span>Пеньки: -1 длина хвоста, -20 очков, пенек ломается</span></div>
+                        <div class="tutorial-item"><img src="./assets/crate_metal.png"> <span>Камни: Смертельное столкновение</span></div>
+                        <div class="tutorial-item"><img src="./assets/portal_base.png"> <span>Порталы: Перемещают змейку в парный портал того же цвета</span></div>
                     </div>
                 </div>
 
