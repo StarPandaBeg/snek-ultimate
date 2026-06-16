@@ -140,6 +140,7 @@ export class MenuUI {
                     <div class="tutorial-section">
                         <div class="section-title">ПРАВИЛА</div>
                         <p class="tutorial-text">Управляйте змейкой с помощью стрелок или WASD.</p>
+                        <p class="tutorial-text">Зажмите Shift для спринта (тратит очки!).</p>
                         <p class="tutorial-text">Собирайте фрукты, чтобы расти и получать очки.</p>
                         <p class="tutorial-text">Избегайте столкновений с камнями и своим хвостом (если не включено откусывание).</p>
                         <p class="tutorial-text">Используйте P для паузы и R для рестарта.</p>
