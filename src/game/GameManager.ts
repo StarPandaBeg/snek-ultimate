@@ -298,22 +298,15 @@ export class GameManager {
             const obs = this.obstacles[obstacleIdx];
             if (obs.type === 'wood') {
                 this.screenShake();
-                if (settings.destructionMode && this.snake.getBody().length > 5) {
+                if (this.snake.getBody().length > 2) {
+                    this.snake.shrink(1);
                     this.obstacles.splice(obstacleIdx, 1);
-                    this.score += 50;
-                    this.renderer.particles.emit(nextHead, '#d35400', 15);
+                    this.renderer.particles.emit(nextHead, '#d35400', 10);
+                    this.score -= 20;
                     AudioManager.playHit();
                 } else {
-                    if (this.snake.getBody().length > 2) {
-                        this.snake.shrink(1);
-                        this.obstacles.splice(obstacleIdx, 1);
-                        this.renderer.particles.emit(nextHead, '#d35400', 10);
-                        this.score -= 20;
-                        AudioManager.playHit();
-                    } else {
-                        this.gameOver();
-                        return;
-                    }
+                    this.gameOver();
+                    return;
                 }
             } else {
                 this.gameOver();

@@ -5,7 +5,7 @@ import { FieldShape, FieldSize, FoodQuantity, GameSpeed, ObstacleQuantity } from
 
 export class MenuUI {
     private container: HTMLElement;
-    private menuKeys: (keyof GameSettings)[] = ['fieldSize', 'fieldShape', 'isInfinite', 'foodQuantity', 'diverseFruits', 'woodenBoxes', 'ironBoxes', 'teleports', 'biteTail', 'destructionMode', 'speed'];
+    private menuKeys: (keyof GameSettings)[] = ['fieldSize', 'fieldShape', 'isInfinite', 'foodQuantity', 'diverseFruits', 'woodenBoxes', 'ironBoxes', 'teleports', 'biteTail', 'speed'];
     private selectedMenuIdx: number = -1;
 
     constructor() {
@@ -91,7 +91,6 @@ export class MenuUI {
                         <div class="section-title">МЕХАНИКА</div>
                         ${this.renderSettingRow('Телепорты', 'teleports', 'choice')}
                         ${this.renderSettingRow('Откусить хвост', 'biteTail', 'boolean')}
-                        ${this.renderSettingRow('Режим разрушения', 'destructionMode', 'boolean')}
                         ${this.renderSettingRow('Скорость', 'speed', 'choice')}
                     </div>
                 </div>

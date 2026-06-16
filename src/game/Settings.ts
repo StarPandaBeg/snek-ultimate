@@ -11,7 +11,6 @@ export interface GameSettings {
     ironBoxes: ObstacleQuantity;
     teleports: ObstacleQuantity;
     biteTail: boolean;
-    destructionMode: boolean;
     speed: GameSpeed;
 }
 
@@ -30,7 +29,6 @@ export class Settings {
             ironBoxes: ObstacleQuantity.LOW,
             teleports: ObstacleQuantity.LOW,
             biteTail: true,
-            destructionMode: true,
             speed: GameSpeed.NORMAL
         };
     }
@@ -76,7 +74,6 @@ export class Settings {
             ironBoxes: obsQuantities[Math.floor(Math.random() * obsQuantities.length)],
             teleports: obsQuantities[Math.floor(Math.random() * obsQuantities.length)],
             biteTail: Math.random() > 0.5,
-            destructionMode: Math.random() > 0.5,
             speed: speeds[Math.floor(Math.random() * speeds.length)]
         });
     }
