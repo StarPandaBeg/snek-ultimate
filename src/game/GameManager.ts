@@ -316,7 +316,7 @@ export class GameManager {
       let speedMultiplier = 1.0;
       if (this.speedBoostTimer > 0) speedMultiplier *= 0.8;
       if (this.slowDownTimer > 0) speedMultiplier *= 1.5;
-      if (this.inputManager.isSprinting()) {
+      if (this.inputManager.isSprinting() && this.slowDownTimer <= 0) {
         speedMultiplier *= 0.75; // Balanced speed boost
         this.score = Math.max(0, this.score - 0.5); // Faster drain for better UI feedback
       } else {
@@ -461,6 +461,7 @@ export class GameManager {
           this.obstacles.splice(obstacleIdx, 1);
           this.renderer.particles.emit(nextHead!, "#d35400", 10);
           this.score -= 20;
+          this.speedBoostTimer = 0; // Stump cancels speed boost
           this.slowDownTimer = 2000; // 2 seconds slow down
           AudioManager.playHit();
         } else {
@@ -547,6 +548,7 @@ export class GameManager {
         this.score += 10;
         break;
       case FoodType.WATERMELON:
+        this.slowDownTimer = 0; // Watermelon cancels slowdown
         this.speedBoostTimer = 10000;
         this.score += 50;
         break;
