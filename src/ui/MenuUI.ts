@@ -39,8 +39,8 @@ export class MenuUI {
                         <div class="section-title">ОБЪЕКТЫ</div>
                         ${this.renderSettingRow('Количество еды', 'foodQuantity', 'choice')}
                         ${this.renderSettingRow('Разные фрукты', 'diverseFruits', 'boolean')}
-                        ${this.renderSettingRow('Деревянные ящики', 'woodenBoxes', 'choice')}
-                        ${this.renderSettingRow('Железные ящики', 'ironBoxes', 'choice')}
+                        ${this.renderSettingRow('Пеньки', 'woodenBoxes', 'choice')}
+                        ${this.renderSettingRow('Камни', 'ironBoxes', 'choice')}
                     </div>
 
                     <!-- Column 3: Mechanics & Speed -->

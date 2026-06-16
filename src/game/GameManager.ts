@@ -118,7 +118,7 @@ export class GameManager {
                     }
                 }
                 if (!found) continue; // skip spawning watermelon if no space
-                this.foods.push({ pos, type, lifeTime: 15000 }); // 15 seconds lifetime
+                this.foods.push({ pos, type, lifeTime: 8000 }); // 8 seconds lifetime
             } else {
                 if (this.isCellEmpty(pos)) {
                     this.foods.push({ pos, type });
@@ -338,8 +338,8 @@ export class GameManager {
         this.state = GameState.GAME_OVER;
         
         this.snake.getBody().forEach(part => {
-            this.renderer.particles.emit(part, '#00ff88', 15);
-            this.renderer.particles.emit(part, '#ffffff', 8);
+            this.renderer.particles.emit(part, '#ff0055', 15); // Red explosion
+            this.renderer.particles.emit(part, '#ffaa00', 8);  // Orange/yellow sparks
         });
         
         AudioManager.playHit();

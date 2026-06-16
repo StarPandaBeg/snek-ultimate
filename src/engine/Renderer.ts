@@ -178,7 +178,7 @@ export class Renderer {
         }
     }
 
-    drawFood(foods: { pos: Point, type: FoodType }[]) {
+    drawFood(foods: { pos: Point, type: FoodType, lifeTime?: number }[]) {
         const offsetX = (this.canvas.width - this.width * this.cellSize) / 2;
         const offsetY = (this.canvas.height - this.height * this.cellSize) / 2;
 
@@ -191,6 +191,16 @@ export class Renderer {
             const margin = isWatermelon ? this.cellSize * 0.1 : (this.cellSize - size) / 2;
             const drawX = offsetX + food.pos.x * this.cellSize + margin;
             const drawY = offsetY + food.pos.y * this.cellSize + margin;
+
+            let alpha = 1.0;
+            if (isWatermelon && food.lifeTime !== undefined) {
+                // Blink if lifetime < 3 seconds
+                if (food.lifeTime < 3000) {
+                    alpha = Math.floor(food.lifeTime / 200) % 2 === 0 ? 0.5 : 1.0;
+                }
+            }
+            
+            this.ctx.globalAlpha = alpha;
 
             if (img) {
                 this.ctx.drawImage(img, drawX, drawY, size, size);
@@ -207,6 +217,22 @@ export class Renderer {
                 }
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
+            }
+            
+            this.ctx.globalAlpha = 1.0;
+
+            if (isWatermelon && food.lifeTime !== undefined) {
+                const maxLife = 8000;
+                const progress = Math.max(0, food.lifeTime / maxLife);
+                const barWidth = size;
+                const barHeight = 4;
+                const barX = drawX;
+                const barY = drawY - 8;
+                
+                this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                this.ctx.fillRect(barX, barY, barWidth, barHeight);
+                this.ctx.fillStyle = progress > 0.3 ? '#00ff88' : '#ff0055';
+                this.ctx.fillRect(barX, barY, barWidth * progress, barHeight);
             }
         });
     }
