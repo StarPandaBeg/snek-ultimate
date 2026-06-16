@@ -225,7 +225,8 @@ export class Renderer {
 
       const hasProgress =
         food.type === FoodType.WATERMELON ||
-        food.type === FoodType.GOLDEN_APPLE;
+        food.type === FoodType.GOLDEN_APPLE ||
+        food.type === FoodType.POISON_MUSHROOM;
       const isWatermelon = food.type === FoodType.WATERMELON;
 
       const size = isWatermelon ? this.cellSize * 1.8 : this.cellSize * 0.8;
