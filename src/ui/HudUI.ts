@@ -11,20 +11,32 @@ export class HudUI {
         this.container = document.getElementById('ui-layer')!;
         EventBus.on('game_started', () => this.renderHud());
         EventBus.on('ui_update', (data: any) => this.updateValues(data));
-        EventBus.on('game_over', () => this.hudElement = null);
+        EventBus.on('game_over', () => {
+            if (this.hudElement) {
+                this.hudElement.remove();
+                this.hudElement = null;
+            }
+        });
         
         requestAnimationFrame(this.updateFps);
     }
 
     private renderHud() {
+        if (this.hudElement) this.hudElement.remove();
+
         this.hudElement = document.createElement('div');
-        this.hudElement.className = 'hud-container';
+        this.hudElement.className = 'hud-container-new';
         this.hudElement.innerHTML = `
-            <div class="hud-item">Счет: <span id="hud-score">0</span></div>
-            <div class="hud-item">Рекорд: <span id="hud-highscore">0</span></div>
-            <div class="hud-item">Длина: <span id="hud-length">3</span></div>
-            <div class="hud-item">FPS: <span id="hud-fps">60</span></div>
-            <button id="pause-btn" class="pause-btn">||</button>
+            <div class="hud-center">
+                <div class="hud-score-label">СЧЕТ</div>
+                <div id="hud-score" class="hud-score-value">0</div>
+            </div>
+            <div class="hud-right">
+                <div class="hud-info-item">РЕКОРД: <span id="hud-highscore">0</span></div>
+                <div class="hud-info-item">ДЛИНА: <span id="hud-length">3</span></div>
+                <div class="hud-info-item">FPS: <span id="hud-fps">60</span></div>
+                <button id="pause-btn" class="pause-btn-new">II</button>
+            </div>
         `;
         this.container.appendChild(this.hudElement);
         

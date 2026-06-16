@@ -10,7 +10,9 @@ export class Snake {
     private isInvulnerable: boolean = false;
 
     constructor(startPos: Point, initialLength: number = 3) {
-        for (let i = 0; i < initialLength; i++) {
+        // Ensure initial body is inside the grid by adding segments in opposite direction if possible
+        this.body.push({ ...startPos });
+        for (let i = 1; i < initialLength; i++) {
             this.body.push({ x: startPos.x - i, y: startPos.y });
         }
         this.prevBody = JSON.parse(JSON.stringify(this.body));

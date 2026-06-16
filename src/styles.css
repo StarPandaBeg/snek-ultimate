@@ -239,37 +239,78 @@ button.primary:hover {
     box-shadow: 0 5px 20px rgba(0, 255, 136, 0.4);
 }
 
-/* HUD Styles */
-.hud-container {
+/* HUD Styles NEW */
+.hud-container-new {
     position: absolute;
-    top: 15px;
-    left: 15px;
-    right: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     pointer-events: none;
+    padding: 20px;
 }
 
-.hud-item {
-    background: rgba(0, 0, 0, 0.8);
-    padding: 10px 15px;
-    border-radius: 4px;
+.hud-center {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+}
+
+.hud-score-label {
     font-size: 0.5rem;
-    border: 1px solid var(--glass-border);
-    color: var(--primary-color);
+    opacity: 0.6;
+    margin-bottom: 5px;
 }
 
-.pause-btn {
+.hud-score-value {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    text-shadow: 0 0 10px var(--primary-color);
+}
+
+.hud-right {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.hud-info-item {
+    font-size: 0.4rem;
+    color: rgba(255, 255, 255, 0.7);
+    text-shadow: 1px 1px #000;
+}
+
+.pause-btn-new {
     pointer-events: auto;
-    width: 40px;
-    height: 40px;
+    width: 30px;
+    height: 30px;
     padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 4px;
-    background: var(--glass-bg);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.5rem;
+}
+
+.pause-btn-new:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--primary-color);
+}
+
+@media (max-width: 600px) {
+    .hud-center { top: 15px; }
+    .hud-score-value { font-size: 1rem; }
 }
 
 .game-over {

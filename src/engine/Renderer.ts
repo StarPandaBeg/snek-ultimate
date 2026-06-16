@@ -64,20 +64,17 @@ export class Renderer {
         const tileSizeX = grassImg.width / 4;
         const tileSizeY = grassImg.height / 4;
 
-        // Perfectly align startX/startY with offsetX/offsetY to avoid shifting
         const startX = offsetX - Math.ceil(offsetX / patternSize) * patternSize;
         const startY = offsetY - Math.ceil(offsetY / patternSize) * patternSize;
 
         for (let screenY = startY; screenY < this.canvas.height + patternSize; screenY += patternSize) {
             for (let screenX = startX; screenX < this.canvas.width + patternSize; screenX += patternSize) {
-                // Use rounding for grid coords to avoid floating point errors
                 const gridX = Math.round((screenX - offsetX) / patternSize);
                 const gridY = Math.round((screenY - offsetY) / patternSize);
                 
                 const isWalkable = walkableCells.has(`${gridX},${gridY}`);
                 const img = isWalkable ? tilesImg : grassImg;
 
-                // Calculate tile index based on grid coordinates (stable for the 4x4 pattern)
                 const tx = ((gridX % 4) + 4) % 4;
                 const ty = ((gridY % 4) + 4) % 4;
 
@@ -105,7 +102,7 @@ export class Renderer {
         this.particles.draw(this.ctx, offsetX, offsetY, this.cellSize);
     }
 
-    drawSnake(snake: Snake, interpolation: number) {
+    drawSnake(snake: Snake, interpolation: number, walkableCells: Set<string>) {
         const offsetX = (this.canvas.width - this.width * this.cellSize) / 2;
         const offsetY = (this.canvas.height - this.height * this.cellSize) / 2;
         const body = snake.getBody();
@@ -120,27 +117,42 @@ export class Renderer {
             const curr = body[i];
             const prev = prevBody[i] || curr;
 
-            let visualX = prev.x + (curr.x - prev.x) * t;
-            let visualY = prev.y + (curr.y - prev.y) * t;
+            // Detect if this segment just teleported/wrapped
+            const isTeleport = Math.abs(curr.x - prev.x) > 1 || Math.abs(curr.y - prev.y) > 1;
 
-            if (Math.abs(curr.x - prev.x) > 1) {
-                if (curr.x < prev.x) visualX = prev.x + (curr.x + this.width - prev.x) * t;
-                else visualX = prev.x + (curr.x - (prev.x + this.width)) * t;
+            let visualX, visualY, scale = 1.0;
+
+            if (isTeleport) {
+                // When entering/leaving portal, shrink and vanish
+                if (t < 0.5) {
+                    // Part 1: Shrink into the old position
+                    visualX = prev.x;
+                    visualY = prev.y;
+                    scale = 1.0 - (t * 2);
+                } else {
+                    // Part 2: Grow out of the new position
+                    visualX = curr.x;
+                    visualY = curr.y;
+                    scale = (t - 0.5) * 2;
+                }
+            } else {
+                visualX = prev.x + (curr.x - prev.x) * t;
+                visualY = prev.y + (curr.y - prev.y) * t;
             }
-            if (Math.abs(curr.y - prev.y) > 1) {
-                if (curr.y < prev.y) visualY = prev.y + (curr.y + this.height - prev.y) * t;
-                else visualY = prev.y + (curr.y - (prev.y + this.height)) * t;
-            }
+
+            // Only draw if within playable area to avoid edge cases
+            if (!walkableCells.has(`${Math.round(visualX)},${Math.round(visualY)}`)) continue;
 
             const isHead = i === 0;
             const img = isHead ? headImg : bodyImg;
-            const size = isHead ? this.cellSize * 1.0 : this.cellSize * 0.85;
+            const baseSize = isHead ? this.cellSize * 1.0 : this.cellSize * 0.85;
+            const size = baseSize * scale;
             const margin = (this.cellSize - size) / 2;
 
             const drawX = offsetX + visualX * this.cellSize + margin;
             const drawY = offsetY + visualY * this.cellSize + margin;
 
-            if (img) {
+            if (img && scale > 0) {
                 if (isHead) {
                     const next = body[1] || body[0];
                     let angle = 0;
@@ -157,7 +169,7 @@ export class Renderer {
                 } else {
                     this.ctx.drawImage(img, drawX, drawY, size, size);
                 }
-            } else {
+            } else if (scale > 0) {
                 this.ctx.fillStyle = isHead ? '#00ff88' : '#00cc6a';
                 this.ctx.beginPath();
                 this.ctx.roundRect(drawX, drawY, size, size, isHead ? size * 0.4 : size * 0.3);
@@ -198,10 +210,6 @@ export class Renderer {
             case FoodType.APPLE: return 'apple';
             case FoodType.BANANA: return 'banana';
             case FoodType.CHERRY: return 'cherry';
-            case FoodType.GOLDEN_APPLE: return 'apple';
-            case FoodType.WATERMELON: return 'apple';
-            case FoodType.PEAR: return 'apple';
-            case FoodType.POISON_MUSHROOM: return 'apple';
             default: return 'apple';
         }
     }
@@ -268,13 +276,11 @@ export class Renderer {
         canvas.width = glowImg.width;
         canvas.height = glowImg.height;
         const ctx = canvas.getContext('2d')!;
-
         ctx.drawImage(glowImg, 0, 0);
         ctx.globalCompositeOperation = 'source-in';
         ctx.fillStyle = color;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.globalCompositeOperation = 'source-over';
-
         this.offscreenPortalCanvases.set(key, canvas);
         return canvas;
     }

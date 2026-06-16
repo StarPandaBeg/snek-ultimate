@@ -324,7 +324,7 @@ export class GameManager {
                 const settings = Settings.get();
                 const speed = GameSpeedMap[settings.speed];
                 const snakeInterpolation = this.inputManager.isMoving() ? this.moveTimer / speed : 0;
-                this.renderer.drawSnake(this.snake, snakeInterpolation);
+                this.renderer.drawSnake(this.snake, snakeInterpolation, this.mapManager.getWalkableCells());
             }
         }
         
