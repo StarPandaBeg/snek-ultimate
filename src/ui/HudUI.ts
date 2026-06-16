@@ -36,9 +36,6 @@ export class HudUI {
         this.hudElement.className = 'hud-container-new';
         this.hudElement.innerHTML = `
             <div id="status-vignette" class="vignette"></div>
-            <div class="hud-left">
-                <div id="hud-status" class="status-container"></div>
-            </div>
             <div class="hud-center">
                 <div class="hud-score-label">СЧЕТ</div>
                 <div id="hud-score" class="hud-score-value">0</div>
@@ -94,7 +91,6 @@ export class HudUI {
         const highscoreEl = document.getElementById('hud-highscore');
         const lengthEl = document.getElementById('hud-length');
         const timeEl = document.getElementById('hud-time');
-        const statusEl = document.getElementById('hud-status');
         const vignetteEl = document.getElementById('status-vignette');
         
         if (scoreEl) scoreEl.innerText = data.score.toString();
@@ -105,16 +101,6 @@ export class HudUI {
             const mins = Math.floor(data.playTime / 60);
             const secs = data.playTime % 60;
             timeEl.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
-        }
-
-        if (statusEl) {
-            const statuses = [];
-            if (data.isSprinting) statuses.push('<div class="status-badge sprint">СПРИНТ</div>');
-            if (data.isSpedUp) statuses.push('<div class="status-badge speed">УСКОРЕНИЕ</div>');
-            if (data.isSlowedDown) statuses.push('<div class="status-badge slow">ЗАМЕДЛЕНИЕ</div>');
-            
-            statusEl.innerHTML = statuses.join('');
-            statusEl.style.display = statuses.length > 0 ? 'flex' : 'none';
         }
 
         if (vignetteEl) {
