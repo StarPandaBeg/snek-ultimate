@@ -266,14 +266,12 @@ button.primary:hover {
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
-    background: rgba(0, 0, 0, 0.85);
+    background: rgba(0, 0, 0, 0.6);
     padding: 15px 35px 20px;
     border-radius: 0 0 20px 20px;
     border: 2px solid var(--glass-border);
     border-top: none;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.4);
 }
 
 .status-container {

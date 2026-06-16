@@ -119,7 +119,7 @@ export class HudUI {
     }
 
     private showScorePopup(delta: number) {
-        if (Math.abs(delta) < 1) return; // Ignore small continuous changes like sprint/survival
+        if (Math.abs(delta) <= 1) return; // Skip small continuous changes (+1/-1 from float math)
 
         const center = document.querySelector('.hud-center');
         if (!center) return;

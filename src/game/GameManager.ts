@@ -518,7 +518,6 @@ export class GameManager {
 
       this.foods.splice(foodIdx, 1);
       this.spawnFood();
-      this.score += 10;
       EventBus.emit("food_eaten", { type: food.type, score: this.score });
     }
 
@@ -533,15 +532,19 @@ export class GameManager {
     switch (type) {
       case FoodType.APPLE:
         this.snake.grow(1);
+        this.score += 10;
         break;
       case FoodType.CHERRY:
         this.snake.grow(2);
+        this.score += 10;
         break;
       case FoodType.BANANA:
         this.snake.grow(3);
+        this.score += 10;
         break;
       case FoodType.PEAR:
         this.snake.grow(1);
+        this.score += 10;
         break;
       case FoodType.WATERMELON:
         this.speedBoostTimer = 10000;
@@ -591,7 +594,9 @@ export class GameManager {
 
       if (
         this.snake &&
-        (this.state === GameState.PLAYING || this.state === GameState.GAME_OVER)
+        (this.state === GameState.PLAYING ||
+          this.state === GameState.GAME_OVER ||
+          this.state === GameState.PAUSED)
       ) {
         const settings = Settings.get();
         const speed = GameSpeedMap[settings.speed];
@@ -600,7 +605,9 @@ export class GameManager {
             ? this.moveTimer / speed
             : 0;
         const startIndex =
-          this.state === GameState.GAME_OVER ? Math.max(0, this.explosionIndex) : 0;
+          this.state === GameState.GAME_OVER
+            ? Math.max(0, this.explosionIndex)
+            : 0;
         this.renderer.drawSnake(
           this.snake,
           snakeInterpolation,
