@@ -77,3 +77,4 @@ npm run build
 
 ---
 Сделано с любовью к ретро-играм! 🕹️
+by StarPanda
