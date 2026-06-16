@@ -42,6 +42,19 @@ export class AudioManager {
         setTimeout(() => this.playTone(900, 'sine', 0.1, 0.08), 50);
     }
 
+    static playPoison() {
+        this.playTone(300, 'sawtooth', 0.2, 0.15);
+        setTimeout(() => this.playTone(200, 'sawtooth', 0.3, 0.2), 100);
+        setTimeout(() => this.playTone(150, 'sawtooth', 0.4, 0.2), 200);
+    }
+
+    static playWatermelon() {
+        this.playTone(400, 'square', 0.1, 0.1);
+        setTimeout(() => this.playTone(600, 'square', 0.1, 0.1), 100);
+        setTimeout(() => this.playTone(800, 'sine', 0.2, 0.15), 200);
+        setTimeout(() => this.playTone(1200, 'sine', 0.4, 0.1), 300);
+    }
+
     static playHit() {
         this.playTone(150, 'sawtooth', 0.3, 0.2);
         this.playTone(100, 'square', 0.2, 0.15);

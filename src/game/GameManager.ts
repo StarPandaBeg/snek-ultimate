@@ -101,7 +101,13 @@ export class GameManager {
         const settings = Settings.get();
         const maxFood = FoodQuantityMap[settings.foodQuantity];
         while (this.foods.length < maxFood) {
-            const type = this.getRandomFoodType();
+            let type = this.getRandomFoodType();
+            
+            // Only 1 watermelon allowed at a time
+            if (type === FoodType.WATERMELON && this.foods.some(f => f.type === FoodType.WATERMELON)) {
+                type = FoodType.APPLE; // Fallback to apple
+            }
+            
             let pos = this.mapManager.getRandomWalkableCell();
             
             // For watermelon (2x2), we need 4 empty cells
@@ -290,7 +296,15 @@ export class GameManager {
             const food = this.foods[foodIdx];
             this.applyFoodEffect(food.type);
             this.renderer.particles.emit(food.pos, this.renderer.getFoodColor(food.type), 15);
-            AudioManager.playEat();
+            
+            if (food.type === FoodType.POISON_MUSHROOM) {
+                AudioManager.playPoison();
+            } else if (food.type === FoodType.WATERMELON) {
+                AudioManager.playWatermelon();
+            } else {
+                AudioManager.playEat();
+            }
+            
             this.foods.splice(foodIdx, 1);
             this.spawnFood();
             this.score += 10;
