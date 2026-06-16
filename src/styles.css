@@ -355,60 +355,29 @@ button.primary:hover {
 
 .hud-left {
     position: absolute;
-    top: 20px;
-    left: 20px;
+    top: 25px;
+    left: 25px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
     pointer-events: none;
-}
-
-.status-badge {
-    font-size: 0.5rem;
-    padding: 10px 16px;
-    border-radius: 4px;
-    border: 2px solid;
-    text-shadow: 1px 1px #000;
-    font-weight: bold;
-    animation: fadeIn 0.2s ease-out;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
-}
-
-.status-badge.sprint {
-    color: var(--secondary-color);
-    border-color: var(--secondary-color);
-    box-shadow: 0 0 15px rgba(0, 212, 255, 0.4);
-}
-
-.status-badge.speed {
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-    box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
-}
-
-.status-badge.slow {
-    color: var(--accent-color);
-    border-color: var(--accent-color);
-    box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
+    z-index: 15; /* Higher than vignette */
 }
 
 .hud-lives {
     display: flex;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: 10px;
 }
 
 .life-circle {
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     background: #a020f0;
     border: 2px solid white;
-    border-radius: 4px; /* Pixel-art look */
-    box-shadow: 0 0 5px rgba(160, 32, 240, 0.5);
-    position: relative;
-    animation: fadeIn 0.3s ease-out;
+    border-radius: 4px;
+    box-shadow: 0 0 10px rgba(160, 32, 240, 0.6);
+    image-rendering: pixelated;
 }
 
 .hud-info-item {
