@@ -144,7 +144,6 @@ export class Renderer {
       const curr = body[i];
       const prev = prevBody[i] || curr;
 
-      // Detect if this segment just teleported/wrapped
       const isTeleport =
         Math.abs(curr.x - prev.x) > 1 || Math.abs(curr.y - prev.y) > 1;
 
@@ -153,14 +152,11 @@ export class Renderer {
         scale = 1.0;
 
       if (isTeleport) {
-        // When entering/leaving portal, shrink and vanish
         if (t < 0.5) {
-          // Part 1: Shrink into the old position
           visualX = prev.x;
           visualY = prev.y;
           scale = 1.0 - t * 2;
         } else {
-          // Part 2: Grow out of the new position
           visualX = curr.x;
           visualY = curr.y;
           scale = (t - 0.5) * 2;
@@ -170,7 +166,6 @@ export class Renderer {
         visualY = prev.y + (curr.y - prev.y) * t;
       }
 
-      // Only draw if within playable area to avoid edge cases
       if (!walkableCells.has(`${Math.round(visualX)},${Math.round(visualY)}`))
         continue;
 
@@ -337,6 +332,7 @@ export class Renderer {
 
     const baseImg = AssetLoader.getImage("portal_base");
     const glowImg = AssetLoader.getImage("portal_glow");
+    const rotationAngle = (performance.now() / 1000) * Math.PI; // 180 degrees per second
 
     portals.forEach((p) => {
       const size = this.cellSize * 1.1;
@@ -346,8 +342,13 @@ export class Renderer {
 
       if (baseImg && glowImg) {
         const coloredPortal = this.getColoredPortal(glowImg, p.color);
-        this.ctx.drawImage(coloredPortal, drawX, drawY, size, size);
-        this.ctx.drawImage(baseImg, drawX, drawY, size, size);
+
+        this.ctx.save();
+        this.ctx.translate(drawX + size / 2, drawY + size / 2);
+        this.ctx.rotate(rotationAngle);
+        this.ctx.drawImage(coloredPortal, -size / 2, -size / 2, size, size);
+        this.ctx.drawImage(baseImg, -size / 2, -size / 2, size, size);
+        this.ctx.restore();
       } else {
         this.ctx.strokeStyle = p.color;
         this.ctx.lineWidth = 3;

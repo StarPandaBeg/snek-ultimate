@@ -93,7 +93,14 @@ export class HudUI {
         const timeEl = document.getElementById('hud-time');
         const vignetteEl = document.getElementById('status-vignette');
         
-        if (scoreEl) scoreEl.innerText = data.score.toString();
+        if (scoreEl) {
+            const oldScore = parseInt(scoreEl.innerText);
+            const newScore = Math.floor(data.score);
+            if (newScore !== oldScore && !isNaN(oldScore)) {
+                this.showScorePopup(newScore - oldScore);
+            }
+            scoreEl.innerText = newScore.toString();
+        }
         if (highscoreEl) highscoreEl.innerText = data.highscore.toString();
         if (lengthEl) lengthEl.innerText = data.length.toString();
         
@@ -109,6 +116,22 @@ export class HudUI {
             else if (data.isSpedUp) vignetteEl.classList.add('vignette-speed');
             else if (data.isSlowedDown) vignetteEl.classList.add('vignette-slow');
         }
+    }
+
+    private showScorePopup(delta: number) {
+        if (Math.abs(delta) < 1) return; // Ignore small continuous changes like sprint/survival
+
+        const center = document.querySelector('.hud-center');
+        if (!center) return;
+
+        const popup = document.createElement('div');
+        popup.className = `score-popup ${delta > 0 ? 'plus' : 'minus'}`;
+        popup.innerText = `${delta > 0 ? '+' : ''}${delta}`;
+        
+        center.appendChild(popup);
+        
+        // Remove after animation
+        setTimeout(() => popup.remove(), 800);
     }
 
     private updateFps = (time: number) => {

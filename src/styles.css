@@ -317,6 +317,32 @@ button.primary:hover {
     font-size: 1.5rem;
     color: var(--primary-color);
     text-shadow: 0 0 10px var(--primary-color);
+    position: relative;
+}
+
+.score-popup {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.8rem;
+    font-weight: bold;
+    pointer-events: none;
+    animation: popupMove 0.8s ease-out forwards;
+    white-space: nowrap;
+}
+
+.score-popup.plus {
+    color: var(--primary-color);
+}
+
+.score-popup.minus {
+    color: var(--accent-color);
+}
+
+@keyframes popupMove {
+    0% { transform: translate(-50%, 0); opacity: 1; }
+    100% { transform: translate(-50%, 20px); opacity: 0; }
 }
 
 .hud-right {
