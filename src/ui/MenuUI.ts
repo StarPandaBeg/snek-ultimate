@@ -10,8 +10,8 @@ export class MenuUI {
         this.container = document.getElementById('ui-layer')!;
         this.renderMenu();
         
-        EventBus.on('game_over', (data: { score: number }) => {
-            setTimeout(() => this.renderGameOver(data.score), 1000);
+        EventBus.on('game_over', (data: { score: number, playTime?: number }) => {
+            setTimeout(() => this.renderGameOver(data.score, data.playTime), 1000);
         });
         EventBus.on('game_started', () => this.container.innerHTML = '');
         EventBus.on('back_to_menu', () => this.renderMenu());
@@ -149,12 +149,20 @@ export class MenuUI {
         }
     }
 
-    private renderGameOver(score: number) {
+    private renderGameOver(score: number, playTime?: number) {
+        let timeString = '';
+        if (playTime !== undefined) {
+            const mins = Math.floor(playTime / 60);
+            const secs = playTime % 60;
+            timeString = `<p style="font-size: 0.5rem; color: #aaa; margin-top: -1rem; margin-bottom: 1.5rem;">ВРЕМЯ: ${mins}:${secs.toString().padStart(2, '0')}</p>`;
+        }
+
         this.container.innerHTML = `
             <div class="glass-panel fade-in game-over">
                 <div class="section-title">РЕЗУЛЬТАТ</div>
                 <p>ВАШ СЧЕТ</p>
                 <span class="score-value">${score}</span>
+                ${timeString}
                 <div class="menu-footer" style="width: 100%">
                     <button id="restart-btn" class="primary" style="width: 100%">ПОВТОРИТЬ</button>
                     <button id="menu-btn" style="width: 100%; margin-top: 0.5rem">МЕНЮ</button>

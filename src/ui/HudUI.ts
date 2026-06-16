@@ -40,6 +40,7 @@ export class HudUI {
                 <div id="hud-score" class="hud-score-value">0</div>
             </div>
             <div class="hud-right">
+                <div class="hud-info-item">ВРЕМЯ: <span id="hud-time">0:00</span></div>
                 <div class="hud-info-item">РЕКОРД: <span id="hud-highscore">0</span></div>
                 <div class="hud-info-item">ДЛИНА: <span id="hud-length">3</span></div>
                 <div class="hud-info-item">FPS: <span id="hud-fps">60</span></div>
@@ -88,10 +89,17 @@ export class HudUI {
         const scoreEl = document.getElementById('hud-score');
         const highscoreEl = document.getElementById('hud-highscore');
         const lengthEl = document.getElementById('hud-length');
+        const timeEl = document.getElementById('hud-time');
         
         if (scoreEl) scoreEl.innerText = data.score.toString();
         if (highscoreEl) highscoreEl.innerText = data.highscore.toString();
         if (lengthEl) lengthEl.innerText = data.length.toString();
+        
+        if (timeEl && data.playTime !== undefined) {
+            const mins = Math.floor(data.playTime / 60);
+            const secs = data.playTime % 60;
+            timeEl.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
     }
 
     private updateFps = (time: number) => {

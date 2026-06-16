@@ -19,6 +19,7 @@ export class GameManager {
     private portals: { pos: Point, color: string, partnerIdx: number }[] = [];
     private score: number = 0;
     private highscore: number = 0;
+    private playTime: number = 0;
     private gameLoop: GameLoop;
     private moveTimer: number = 0;
 
@@ -49,6 +50,7 @@ export class GameManager {
         this.obstacles = [];
         this.portals = [];
         this.score = 0;
+        this.playTime = 0;
         this.moveTimer = 0;
         
         this.generateEntities();
@@ -168,6 +170,10 @@ export class GameManager {
         this.renderer.particles.update(dt);
         
         if (this.state === GameState.PLAYING) {
+            if (!this.inputManager.isMoving()) return;
+
+            this.playTime += dt;
+
             // Update food lifetimes
             for (let i = this.foods.length - 1; i >= 0; i--) {
                 if (this.foods[i].lifeTime !== undefined) {
@@ -179,8 +185,6 @@ export class GameManager {
                 }
             }
 
-            if (!this.inputManager.isMoving()) return;
-
             const settings = Settings.get();
             const speed = GameSpeedMap[settings.speed];
             this.moveTimer += dt;
@@ -189,6 +193,14 @@ export class GameManager {
                 this.moveTimer = 0;
                 this.tick();
             }
+            
+            // Emit UI update every frame while playing for smooth time
+            EventBus.emit('ui_update', { 
+                score: this.score, 
+                highscore: this.highscore, 
+                length: this.snake.getBody().length,
+                playTime: Math.floor(this.playTime / 1000)
+            });
         }
     };
 
@@ -317,7 +329,6 @@ export class GameManager {
             this.highscore = this.score;
             localStorage.setItem('snake_highscore', this.highscore.toString());
         }
-        EventBus.emit('ui_update', { score: this.score, highscore: this.highscore, length: this.snake.getBody().length });
     }
 
     private applyFoodEffect(type: FoodType) {
@@ -358,7 +369,7 @@ export class GameManager {
         
         AudioManager.playHit();
         this.screenShake();
-        EventBus.emit('game_over', { score: this.score });
+        EventBus.emit('game_over', { score: this.score, playTime: Math.floor(this.playTime / 1000) });
     }
 
     render = (_interpolation: number) => {
