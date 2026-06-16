@@ -394,6 +394,23 @@ button.primary:hover {
     box-shadow: 0 0 15px rgba(255, 0, 85, 0.4);
 }
 
+.hud-lives {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.life-circle {
+    width: 20px;
+    height: 20px;
+    background: #a020f0;
+    border: 2px solid white;
+    border-radius: 4px; /* Pixel-art look */
+    box-shadow: 0 0 5px rgba(160, 32, 240, 0.5);
+    position: relative;
+    animation: fadeIn 0.3s ease-out;
+}
+
 .hud-info-item {
     font-size: 0.4rem;
     color: rgba(255, 255, 255, 0.7);

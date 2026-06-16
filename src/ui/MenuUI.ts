@@ -154,6 +154,7 @@ export class MenuUI {
                         <div class="tutorial-item"><img src="./assets/food_banana.png"> <span>Банан: +3 длина, +10 очков</span></div>
                         <div class="tutorial-item"><img src="./assets/food_golden_apple.png"> <span>Золотое яблоко: +10 длина, +100 очков (появляется на 8 секунд)</span></div>
                         <div class="tutorial-item"><img src="./assets/food_watermelon.png"> <span>Арбуз: Ускорение на 10 сек, +50 очков (появляется на 8 секунд)</span></div>
+                        <div class="tutorial-item"><img src="./assets/food_grape.png"> <span>Виноград: +1 жизнь (макс 3), 0 очков (появляется на 8 секунд)</span></div>
                         <div class="tutorial-item"><img src="./assets/food_poison.png"> <span>Баклажан: -2 длина, -50 очков</span></div>
                     </div>
 

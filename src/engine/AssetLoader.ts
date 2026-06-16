@@ -11,6 +11,7 @@ export class AssetLoader {
             { name: 'pear', url: './assets/food_pear.png' },
             { name: 'golden_apple', url: './assets/food_golden_apple.png' },
             { name: 'watermelon', url: './assets/food_watermelon.png' },
+            { name: 'grape', url: './assets/food_grape.png' },
             { name: 'poison', url: './assets/food_poison.png' },
             { name: 'crate_wood', url: './assets/crate_wood.png' },
             { name: 'crate_metal', url: './assets/crate_metal.png' },

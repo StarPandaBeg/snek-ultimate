@@ -78,7 +78,8 @@ export enum FoodType {
     PEAR = 'Pear',
     WATERMELON = 'Watermelon',
     GOLDEN_APPLE = 'GoldenApple',
-    POISON_MUSHROOM = 'PoisonMushroom'
+    POISON_MUSHROOM = 'PoisonMushroom',
+    GRAPE = 'Grape'
 }
 
 export interface Point {

@@ -36,6 +36,10 @@ export class HudUI {
         this.hudElement.className = 'hud-container-new';
         this.hudElement.innerHTML = `
             <div id="status-vignette" class="vignette"></div>
+            <div class="hud-left">
+                <div id="hud-lives" class="hud-lives"></div>
+                <div id="hud-status" class="status-container"></div>
+            </div>
             <div class="hud-center">
                 <div class="hud-score-label">СЧЕТ</div>
                 <div id="hud-score" class="hud-score-value">0</div>
@@ -91,7 +95,9 @@ export class HudUI {
         const highscoreEl = document.getElementById('hud-highscore');
         const lengthEl = document.getElementById('hud-length');
         const timeEl = document.getElementById('hud-time');
+        const statusEl = document.getElementById('hud-status');
         const vignetteEl = document.getElementById('status-vignette');
+        const livesEl = document.getElementById('hud-lives');
         
         if (scoreEl) {
             const oldScore = parseInt(scoreEl.innerText);
@@ -110,11 +116,29 @@ export class HudUI {
             timeEl.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
         }
 
+        if (statusEl) {
+            const statuses = [];
+            if (data.isSprinting) statuses.push('<div class="status-badge sprint">СПРИНТ</div>');
+            if (data.isSpedUp) statuses.push('<div class="status-badge speed">УСКОРЕНИЕ</div>');
+            if (data.isSlowedDown) statuses.push('<div class="status-badge slow">ЗАМЕДЛЕНИЕ</div>');
+            
+            statusEl.innerHTML = statuses.join('');
+            statusEl.style.display = statuses.length > 0 ? 'flex' : 'none';
+        }
+
         if (vignetteEl) {
             vignetteEl.className = 'vignette';
             if (data.isSprinting) vignetteEl.classList.add('vignette-sprint');
             else if (data.isSpedUp) vignetteEl.classList.add('vignette-speed');
             else if (data.isSlowedDown) vignetteEl.classList.add('vignette-slow');
+        }
+
+        if (livesEl && data.lives !== undefined) {
+            let livesHtml = '';
+            for (let i = 0; i < data.lives; i++) {
+                livesHtml += '<div class="life-circle"></div>';
+            }
+            livesEl.innerHTML = livesHtml;
         }
     }
 

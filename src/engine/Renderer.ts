@@ -129,6 +129,7 @@ export class Renderer {
     interpolation: number,
     walkableCells: Set<string>,
     startIndex: number = 0,
+    lives: number = 0
   ) {
     const offsetX = (this.canvas.width - this.width * this.cellSize) / 2;
     const offsetY = (this.canvas.height - this.height * this.cellSize) / 2;
@@ -191,6 +192,24 @@ export class Renderer {
           this.ctx.translate(drawX + size / 2, drawY + size / 2);
           this.ctx.rotate(angle);
           this.ctx.drawImage(img, -size / 2, -size / 2, size, size);
+          
+          if (lives > 0) {
+              this.ctx.rotate(-angle);
+              const orbitRadius = size * 0.7;
+              const time = performance.now() / 500;
+              for (let l = 0; l < lives; l++) {
+                  const orbitAngle = time + (l * (Math.PI * 2) / lives);
+                  const ox = Math.cos(orbitAngle) * orbitRadius;
+                  const oy = Math.sin(orbitAngle) * orbitRadius;
+                  this.ctx.fillStyle = "#a020f0";
+                  this.ctx.strokeStyle = "white";
+                  this.ctx.lineWidth = 1;
+                  this.ctx.beginPath();
+                  this.ctx.arc(ox, oy, size * 0.1, 0, Math.PI * 2);
+                  this.ctx.fill();
+                  this.ctx.stroke();
+              }
+          }
           this.ctx.restore();
         } else {
           this.ctx.drawImage(img, drawX, drawY, size, size);
@@ -221,7 +240,8 @@ export class Renderer {
       const hasProgress =
         food.type === FoodType.WATERMELON ||
         food.type === FoodType.GOLDEN_APPLE ||
-        food.type === FoodType.POISON_MUSHROOM;
+        food.type === FoodType.POISON_MUSHROOM ||
+        food.type === FoodType.GRAPE;
       const isWatermelon = food.type === FoodType.WATERMELON;
 
       const size = isWatermelon ? this.cellSize * 1.8 : this.cellSize * 0.8;
@@ -283,22 +303,15 @@ export class Renderer {
 
   private getFoodImageName(type: FoodType): string {
     switch (type) {
-      case FoodType.APPLE:
-        return "apple";
-      case FoodType.BANANA:
-        return "banana";
-      case FoodType.CHERRY:
-        return "cherry";
-      case FoodType.GOLDEN_APPLE:
-        return "golden_apple";
-      case FoodType.WATERMELON:
-        return "watermelon";
-      case FoodType.PEAR:
-        return "pear";
-      case FoodType.POISON_MUSHROOM:
-        return "poison";
-      default:
-        return "apple";
+      case FoodType.APPLE: return "apple";
+      case FoodType.BANANA: return "banana";
+      case FoodType.CHERRY: return "cherry";
+      case FoodType.GOLDEN_APPLE: return "golden_apple";
+      case FoodType.WATERMELON: return "watermelon";
+      case FoodType.PEAR: return "pear";
+      case FoodType.POISON_MUSHROOM: return "poison";
+      case FoodType.GRAPE: return "grape";
+      default: return "apple";
     }
   }
 
@@ -332,7 +345,7 @@ export class Renderer {
 
     const baseImg = AssetLoader.getImage("portal_base");
     const glowImg = AssetLoader.getImage("portal_glow");
-    const rotationAngle = (performance.now() / 1000) * Math.PI; // 180 degrees per second
+    const rotationAngle = (performance.now() / 1000) * Math.PI;
 
     portals.forEach((p) => {
       const size = this.cellSize * 1.1;
@@ -392,22 +405,15 @@ export class Renderer {
 
   public getFoodColor(type: FoodType): string {
     switch (type) {
-      case FoodType.APPLE:
-        return "#ff4d4d";
-      case FoodType.BANANA:
-        return "#ffff4d";
-      case FoodType.CHERRY:
-        return "#ff1a1a";
-      case FoodType.PEAR:
-        return "#99ff33";
-      case FoodType.WATERMELON:
-        return "#ff3385";
-      case FoodType.GOLDEN_APPLE:
-        return "#ffd700";
-      case FoodType.POISON_MUSHROOM:
-        return "#9933ff";
-      default:
-        return "#ffffff";
+      case FoodType.APPLE: return "#ff4d4d";
+      case FoodType.BANANA: return "#ffff4d";
+      case FoodType.CHERRY: return "#ff1a1a";
+      case FoodType.PEAR: return "#99ff33";
+      case FoodType.WATERMELON: return "#ff3385";
+      case FoodType.GOLDEN_APPLE: return "#ffd700";
+      case FoodType.POISON_MUSHROOM: return "#9933ff";
+      case FoodType.GRAPE: return "#a020f0";
+      default: return "#ffffff";
     }
   }
 }

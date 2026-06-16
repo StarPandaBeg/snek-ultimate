@@ -28,6 +28,7 @@ export class GameManager {
   private score: number = 0;
   private highscore: number = 0;
   private playTime: number = 0;
+  private lives: number = 0;
   private gameLoop: GameLoop;
   private moveTimer: number = 0;
   private lastTickSpeed: number = 0;
@@ -48,8 +49,8 @@ export class GameManager {
     EventBus.on("resume_game", () => this.handleResume());
     EventBus.on("restart_game", () => this.start());
     EventBus.on("back_to_menu", () => {
-      this.state = GameState.MENU;
-      this.inputManager.setEnabled(true);
+        this.state = GameState.MENU;
+        this.inputManager.setEnabled(true);
     });
 
     window.addEventListener("keydown", (e) => {
@@ -86,6 +87,7 @@ export class GameManager {
     this.portals = [];
     this.score = 0;
     this.playTime = 0;
+    this.lives = 0;
     this.moveTimer = 0;
     this.lastTickSpeed = 0;
     this.explosionIndex = -1;
@@ -167,16 +169,19 @@ export class GameManager {
       ) {
         type = FoodType.APPLE; // Fallback to apple
       }
+      
+      // Only 1 grape allowed at a time
+      if (type === FoodType.GRAPE && this.foods.some(f => f.type === FoodType.GRAPE)) {
+          type = FoodType.CHERRY;
+      }
 
       let pos = this.mapManager.getRandomWalkableCell();
 
-      // For watermelon (2x2), we need 4 empty cells and NOT on edges
       if (type === FoodType.WATERMELON) {
         let found = false;
         const { width, height } = this.mapManager.getDimensions();
         for (let attempts = 0; attempts < 100; attempts++) {
           pos = this.mapManager.getRandomWalkableCell();
-          // Avoid edges for 2x2
           if (pos.x >= width - 1 || pos.y >= height - 1) continue;
 
           if (
@@ -189,14 +194,15 @@ export class GameManager {
             break;
           }
         }
-        if (!found) continue; // skip spawning watermelon if no space
-        this.foods.push({ pos, type, lifeTime: 8000 }); // 8 seconds lifetime
+        if (!found) continue;
+        this.foods.push({ pos, type, lifeTime: 8000 });
       } else if (
         type === FoodType.GOLDEN_APPLE ||
-        type === FoodType.POISON_MUSHROOM
+        type === FoodType.POISON_MUSHROOM ||
+        type === FoodType.GRAPE
       ) {
         if (this.isCellEmpty(pos)) {
-          this.foods.push({ pos, type, lifeTime: 8000 }); // 8 seconds lifetime
+          this.foods.push({ pos, type, lifeTime: 8000 });
         }
       } else {
         if (this.isCellEmpty(pos)) {
@@ -211,12 +217,13 @@ export class GameManager {
     if (!settings.diverseFruits) return FoodType.APPLE;
 
     const r = Math.random();
-    if (r < 0.05) return FoodType.GOLDEN_APPLE;
-    if (r < 0.15) return FoodType.POISON_MUSHROOM;
-    if (r < 0.3) return FoodType.WATERMELON;
-    if (r < 0.5) return FoodType.BANANA;
-    if (r < 0.7) return FoodType.CHERRY;
-    if (r < 0.85) return FoodType.PEAR;
+    if (r < 0.02) return FoodType.GRAPE; // Very rare
+    if (r < 0.07) return FoodType.GOLDEN_APPLE;
+    if (r < 0.17) return FoodType.POISON_MUSHROOM;
+    if (r < 0.32) return FoodType.WATERMELON;
+    if (r < 0.52) return FoodType.BANANA;
+    if (r < 0.72) return FoodType.CHERRY;
+    if (r < 0.87) return FoodType.PEAR;
     return FoodType.APPLE;
   }
 
@@ -256,6 +263,7 @@ export class GameManager {
         isSprinting: false,
         isSpedUp: this.speedBoostTimer > 0,
         isSlowedDown: this.slowDownTimer > 0,
+        lives: this.lives
       });
     }
   }
@@ -264,7 +272,7 @@ export class GameManager {
     if (this.state === GameState.PAUSED) {
       this.state = GameState.PLAYING;
       this.inputManager.setEnabled(true);
-      this.inputManager.clearQueue(); // Don't buffer keys from pause
+      this.inputManager.clearQueue();
     }
   }
 
@@ -308,13 +316,12 @@ export class GameManager {
         this.slowDownTimer -= dt;
       }
 
-      // Update food lifetimes
       for (let i = this.foods.length - 1; i >= 0; i--) {
         if (this.foods[i].lifeTime !== undefined) {
           this.foods[i].lifeTime! -= dt;
           if (this.foods[i].lifeTime! <= 0) {
             this.foods.splice(i, 1);
-            this.spawnFood(); // Spawn a new one to replace it
+            this.spawnFood();
           }
         }
       }
@@ -325,17 +332,16 @@ export class GameManager {
       let speedMultiplier = 1.0;
       if (this.speedBoostTimer > 0) speedMultiplier *= 0.8;
       if (this.slowDownTimer > 0) speedMultiplier *= 1.5;
-
+      
       if (this.inputManager.isSprinting() && this.slowDownTimer <= 0) {
-        speedMultiplier *= 0.75; // Moderate speed boost
-        this.score = Math.max(0, this.score - 0.5); // Continuous drain
+        speedMultiplier *= 0.75;
+        this.score = Math.max(0, this.score - 0.5);
       } else {
-        this.score += 0.05; // Continuous gain
+        this.score += 0.05;
       }
 
       const speed = baseSpeed * speedMultiplier;
 
-      // Fix Jitter: Scale moveTimer proportionally when speed changes
       if (this.lastTickSpeed > 0 && this.lastTickSpeed !== speed) {
         this.moveTimer = (this.moveTimer / this.lastTickSpeed) * speed;
       }
@@ -348,7 +354,6 @@ export class GameManager {
         this.tick();
       }
 
-      // Emit UI update every frame while playing for smooth time/status
       EventBus.emit("ui_update", {
         score: Math.floor(this.score),
         highscore: this.highscore,
@@ -357,6 +362,7 @@ export class GameManager {
         isSprinting: this.inputManager.isSprinting(),
         isSpedUp: this.speedBoostTimer > 0,
         isSlowedDown: this.slowDownTimer > 0,
+        lives: this.lives
       });
     }
   };
@@ -370,18 +376,10 @@ export class GameManager {
     let nextHead = { ...head };
 
     switch (dir) {
-      case Direction.UP:
-        nextHead.y--;
-        break;
-      case Direction.DOWN:
-        nextHead.y++;
-        break;
-      case Direction.LEFT:
-        nextHead.x--;
-        break;
-      case Direction.RIGHT:
-        nextHead.x++;
-        break;
+      case Direction.UP: nextHead.y--; break;
+      case Direction.DOWN: nextHead.y++; break;
+      case Direction.LEFT: nextHead.x--; break;
+      case Direction.RIGHT: nextHead.x++; break;
     }
 
     if (
@@ -391,41 +389,39 @@ export class GameManager {
       nextHead.y >= height ||
       !this.mapManager.isWalkable(nextHead.x, nextHead.y)
     ) {
-      if (!isInfinite) return null;
+      if (!isInfinite) {
+          if (this.lives > 0) {
+              // Forced wrap using a life
+              let wrapped = false;
+              if (dir === Direction.LEFT) {
+                for (let x = width - 1; x > head.x; x--) { if (this.mapManager.isWalkable(x, head.y)) { nextHead.x = x; wrapped = true; break; } }
+              } else if (dir === Direction.RIGHT) {
+                for (let x = 0; x < head.x; x++) { if (this.mapManager.isWalkable(x, head.y)) { nextHead.x = x; wrapped = true; break; } }
+              } else if (dir === Direction.UP) {
+                for (let y = height - 1; y > head.y; y--) { if (this.mapManager.isWalkable(head.x, y)) { nextHead.y = y; wrapped = true; break; } }
+              } else if (dir === Direction.DOWN) {
+                for (let y = 0; y < head.y; y++) { if (this.mapManager.isWalkable(head.x, y)) { nextHead.y = y; wrapped = true; break; } }
+              }
+              if (wrapped) {
+                  this.lives--;
+                  this.slowDownTimer = 2000;
+                  this.screenShake();
+                  AudioManager.playHit();
+                  return nextHead;
+              }
+          }
+          return null;
+      }
 
       let wrapped = false;
       if (dir === Direction.LEFT) {
-        for (let x = width - 1; x > head.x; x--) {
-          if (this.mapManager.isWalkable(x, head.y)) {
-            nextHead.x = x;
-            wrapped = true;
-            break;
-          }
-        }
+        for (let x = width - 1; x > head.x; x--) { if (this.mapManager.isWalkable(x, head.y)) { nextHead.x = x; wrapped = true; break; } }
       } else if (dir === Direction.RIGHT) {
-        for (let x = 0; x < head.x; x++) {
-          if (this.mapManager.isWalkable(x, head.y)) {
-            nextHead.x = x;
-            wrapped = true;
-            break;
-          }
-        }
+        for (let x = 0; x < head.x; x++) { if (this.mapManager.isWalkable(x, head.y)) { nextHead.x = x; wrapped = true; break; } }
       } else if (dir === Direction.UP) {
-        for (let y = height - 1; y > head.y; y--) {
-          if (this.mapManager.isWalkable(head.x, y)) {
-            nextHead.y = y;
-            wrapped = true;
-            break;
-          }
-        }
+        for (let y = height - 1; y > head.y; y--) { if (this.mapManager.isWalkable(head.x, y)) { nextHead.y = y; wrapped = true; break; } }
       } else if (dir === Direction.DOWN) {
-        for (let y = 0; y < head.y; y++) {
-          if (this.mapManager.isWalkable(head.x, y)) {
-            nextHead.y = y;
-            wrapped = true;
-            break;
-          }
-        }
+        for (let y = 0; y < head.y; y++) { if (this.mapManager.isWalkable(head.x, y)) { nextHead.y = y; wrapped = true; break; } }
       }
       if (!wrapped) return null;
     }
@@ -471,16 +467,28 @@ export class GameManager {
           this.obstacles.splice(obstacleIdx, 1);
           this.renderer.particles.emit(nextHead!, "#d35400", 10);
           this.score -= 20;
-          this.speedBoostTimer = 0; // Stump cancels speed boost
-          this.slowDownTimer = 2000; // 2 seconds slow down
+          this.speedBoostTimer = 0;
+          this.slowDownTimer = 2000;
           AudioManager.playHit();
         } else {
           this.gameOver();
           return;
         }
-      } else {
-        this.gameOver();
-        return;
+      } else if (obs.type === "iron") {
+          if (this.lives > 0) {
+              this.lives--;
+              this.screenShake();
+              this.obstacles.splice(obstacleIdx, 1); // Destroy stone
+              this.renderer.particles.emit(nextHead!, "#7f8c8d", 15);
+              this.snake.shrink(1);
+              this.score -= 50;
+              this.speedBoostTimer = 0;
+              this.slowDownTimer = 2000;
+              AudioManager.playHit();
+          } else {
+              this.gameOver();
+              return;
+          }
       }
     }
 
@@ -523,6 +531,8 @@ export class GameManager {
         AudioManager.playWatermelon();
       } else if (food.type === FoodType.GOLDEN_APPLE) {
         AudioManager.playGoldenApple();
+      } else if (food.type === FoodType.GRAPE) {
+          AudioManager.playGoldenApple(); // Use same sound for now or similar
       } else {
         AudioManager.playEat();
       }
@@ -541,35 +551,15 @@ export class GameManager {
 
   private applyFoodEffect(type: FoodType) {
     switch (type) {
-      case FoodType.APPLE:
-        this.snake.grow(1);
-        this.score += 10;
-        break;
-      case FoodType.CHERRY:
-        this.snake.grow(2);
-        this.score += 10;
-        break;
-      case FoodType.BANANA:
-        this.snake.grow(3);
-        this.score += 10;
-        break;
-      case FoodType.PEAR:
-        this.snake.grow(1);
-        this.score += 10;
-        break;
-      case FoodType.WATERMELON:
-        this.slowDownTimer = 0; // Watermelon cancels slowdown
-        this.speedBoostTimer = 10000;
-        this.score += 50;
-        break;
-      case FoodType.GOLDEN_APPLE:
-        this.snake.grow(10);
-        this.score += 100;
-        break;
+      case FoodType.APPLE: this.snake.grow(1); this.score += 10; break;
+      case FoodType.CHERRY: this.snake.grow(2); this.score += 10; break;
+      case FoodType.BANANA: this.snake.grow(3); this.score += 10; break;
+      case FoodType.PEAR: this.snake.grow(1); this.score += 10; break;
+      case FoodType.WATERMELON: this.slowDownTimer = 0; this.speedBoostTimer = 10000; this.score += 50; break;
+      case FoodType.GOLDEN_APPLE: this.snake.grow(10); this.score += 100; break;
+      case FoodType.GRAPE: this.lives = Math.min(3, this.lives + 1); break;
       case FoodType.POISON_MUSHROOM:
-        if (this.snake.getBody().length > 3) {
-          this.snake.shrink(2);
-        }
+        if (this.snake.getBody().length > 3) { this.snake.shrink(2); }
         this.score -= 50;
         break;
     }
@@ -578,14 +568,13 @@ export class GameManager {
   private screenShake() {
     const canvas = this.renderer.getCanvas();
     canvas.classList.remove("shake");
-    void canvas.offsetWidth; // trigger reflow
+    void canvas.offsetWidth;
     canvas.classList.add("shake");
   }
 
   private gameOver() {
     if (this.state === GameState.GAME_OVER) return;
     this.state = GameState.GAME_OVER;
-
     this.explosionIndex = 0;
     this.explosionTimer = 0;
     this.screenShake();
@@ -593,10 +582,7 @@ export class GameManager {
 
   render = (_interpolation: number) => {
     this.renderer.clear();
-    this.renderer.setDimensions(
-      this.mapManager.getDimensions().width,
-      this.mapManager.getDimensions().height,
-    );
+    this.renderer.setDimensions(this.mapManager.getDimensions().width, this.mapManager.getDimensions().height);
     this.renderer.drawGrid(this.mapManager.getWalkableCells());
 
     if (this.state !== GameState.MENU) {
@@ -604,31 +590,14 @@ export class GameManager {
       this.renderer.drawObstacles(this.obstacles);
       this.renderer.drawFood(this.foods);
 
-      if (
-        this.snake &&
-        (this.state === GameState.PLAYING ||
-          this.state === GameState.GAME_OVER ||
-          this.state === GameState.PAUSED)
-      ) {
+      if (this.snake && (this.state === GameState.PLAYING || this.state === GameState.GAME_OVER || this.state === GameState.PAUSED)) {
         const settings = Settings.get();
         const speed = GameSpeedMap[settings.speed];
-        const snakeInterpolation =
-          this.state === GameState.PLAYING && this.inputManager.isMoving()
-            ? this.moveTimer / speed
-            : 0;
-        const startIndex =
-          this.state === GameState.GAME_OVER
-            ? Math.max(0, this.explosionIndex)
-            : 0;
-        this.renderer.drawSnake(
-          this.snake,
-          snakeInterpolation,
-          this.mapManager.getWalkableCells(),
-          startIndex,
-        );
+        const snakeInterpolation = this.state === GameState.PLAYING && this.inputManager.isMoving() ? this.moveTimer / speed : 0;
+        const startIndex = this.state === GameState.GAME_OVER ? Math.max(0, this.explosionIndex) : 0;
+        this.renderer.drawSnake(this.snake, snakeInterpolation, this.mapManager.getWalkableCells(), startIndex, this.lives);
       }
     }
-
     this.renderer.drawParticles();
   };
 }
