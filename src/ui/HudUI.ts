@@ -105,9 +105,14 @@ export class HudUI {
             timeEl.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
         }
 
-        if (statusEl && data.status !== undefined) {
-            statusEl.innerText = data.status;
-            statusEl.style.display = data.status ? 'block' : 'none';
+        if (statusEl) {
+            const statuses = [];
+            if (data.isSprinting) statuses.push('<div class="status-badge sprint">СПРИНТ</div>');
+            if (data.isSpedUp) statuses.push('<div class="status-badge speed">УСКОРЕНИЕ</div>');
+            if (data.isSlowedDown) statuses.push('<div class="status-badge slow">ЗАМЕДЛЕНИЕ</div>');
+            
+            statusEl.innerHTML = statuses.join('');
+            statusEl.style.display = statuses.length > 0 ? 'flex' : 'none';
         }
     }
 

@@ -30,6 +30,7 @@ export class GameManager {
   private playTime: number = 0;
   private gameLoop: GameLoop;
   private moveTimer: number = 0;
+  private lastTickSpeed: number = 0;
   private explosionIndex: number = -1;
   private explosionTimer: number = 0;
   private speedBoostTimer: number = 0;
@@ -83,6 +84,7 @@ export class GameManager {
     this.score = 0;
     this.playTime = 0;
     this.moveTimer = 0;
+    this.lastTickSpeed = 0;
     this.explosionIndex = -1;
     this.speedBoostTimer = 0;
     this.slowDownTimer = 0;
@@ -186,7 +188,10 @@ export class GameManager {
         }
         if (!found) continue; // skip spawning watermelon if no space
         this.foods.push({ pos, type, lifeTime: 8000 }); // 8 seconds lifetime
-      } else if (type === FoodType.GOLDEN_APPLE || type === FoodType.POISON_MUSHROOM) {
+      } else if (
+        type === FoodType.GOLDEN_APPLE ||
+        type === FoodType.POISON_MUSHROOM
+      ) {
         if (this.isCellEmpty(pos)) {
           this.foods.push({ pos, type, lifeTime: 8000 }); // 8 seconds lifetime
         }
@@ -314,6 +319,13 @@ export class GameManager {
       }
 
       const speed = baseSpeed * speedMultiplier;
+
+      // Fix Jitter: Scale moveTimer proportionally when speed changes
+      if (this.lastTickSpeed > 0 && this.lastTickSpeed !== speed) {
+        this.moveTimer = (this.moveTimer / this.lastTickSpeed) * speed;
+      }
+      this.lastTickSpeed = speed;
+
       this.moveTimer += dt;
 
       if (this.moveTimer >= speed) {
@@ -321,24 +333,18 @@ export class GameManager {
         this.tick();
       }
 
-      // Emit UI update every frame while playing for smooth time
+      // Emit UI update every frame while playing for smooth time/status
       EventBus.emit("ui_update", {
         score: Math.floor(this.score),
         highscore: this.highscore,
         length: this.snake.getBody().length,
         playTime: Math.floor(this.playTime / 1000),
-        status: this.getStatusText(),
+        isSprinting: this.inputManager.isSprinting(),
+        isSpedUp: this.speedBoostTimer > 0,
+        isSlowedDown: this.slowDownTimer > 0,
       });
     }
   };
-
-  private getStatusText(): string {
-    const statuses = [];
-    if (this.speedBoostTimer > 0) statuses.push("УСКОРЕНИЕ");
-    if (this.slowDownTimer > 0) statuses.push("ЗАМЕДЛЕНИЕ");
-    if (this.inputManager.isSprinting()) statuses.push("СПРИНТ (-ОЧКИ)");
-    return statuses.join(" | ");
-  }
 
   private getNextPosition(
     head: Point,
