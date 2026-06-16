@@ -12,6 +12,10 @@ export class AudioManager {
         this.enabled = value;
     }
 
+    static isEnabled(): boolean {
+        return this.enabled;
+    }
+
     private static playTone(freq: number, type: OscillatorType, duration: number, volume: number = 0.1) {
         if (!this.enabled) return;
         this.init();

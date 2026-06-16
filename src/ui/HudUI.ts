@@ -1,8 +1,10 @@
 import { EventBus } from '../engine/EventBus';
+import { AudioManager } from '../engine/AudioManager';
 
 export class HudUI {
     private container: HTMLElement;
     private hudElement: HTMLElement | null = null;
+    private pauseMenu: HTMLElement | null = null;
     private fps: number = 0;
     private lastFpsUpdate: number = 0;
     private frameCount: number = 0;
@@ -11,10 +13,16 @@ export class HudUI {
         this.container = document.getElementById('ui-layer')!;
         EventBus.on('game_started', () => this.renderHud());
         EventBus.on('ui_update', (data: any) => this.updateValues(data));
+        EventBus.on('pause_game', () => this.togglePauseMenu());
+        EventBus.on('resume_game', () => this.togglePauseMenu());
         EventBus.on('game_over', () => {
             if (this.hudElement) {
                 this.hudElement.remove();
                 this.hudElement = null;
+            }
+            if (this.pauseMenu) {
+                this.pauseMenu.remove();
+                this.pauseMenu = null;
             }
         });
         
@@ -35,12 +43,44 @@ export class HudUI {
                 <div class="hud-info-item">РЕКОРД: <span id="hud-highscore">0</span></div>
                 <div class="hud-info-item">ДЛИНА: <span id="hud-length">3</span></div>
                 <div class="hud-info-item">FPS: <span id="hud-fps">60</span></div>
+                <button id="sound-btn" class="pause-btn-new">${AudioManager.isEnabled() ? '🔊' : '🔇'}</button>
                 <button id="pause-btn" class="pause-btn-new">II</button>
             </div>
         `;
         this.container.appendChild(this.hudElement);
         
         document.getElementById('pause-btn')?.addEventListener('click', () => EventBus.emit('pause_game'));
+        document.getElementById('sound-btn')?.addEventListener('click', (e) => {
+            const btn = e.target as HTMLButtonElement;
+            const enabled = !AudioManager.isEnabled();
+            AudioManager.setEnabled(enabled);
+            btn.innerText = enabled ? '🔊' : '🔇';
+        });
+    }
+
+    private togglePauseMenu() {
+        if (this.pauseMenu) {
+            this.pauseMenu.remove();
+            this.pauseMenu = null;
+        } else {
+            this.pauseMenu = document.createElement('div');
+            this.pauseMenu.className = 'glass-panel fade-in game-over';
+            this.pauseMenu.innerHTML = `
+                <div class="section-title">ПАУЗА</div>
+                <div class="menu-footer" style="width: 100%">
+                    <button id="resume-btn" class="primary" style="width: 100%">ПРОДОЛЖИТЬ</button>
+                    <button id="quit-btn" style="width: 100%; margin-top: 0.5rem">ВЫЙТИ В МЕНЮ</button>
+                </div>
+            `;
+            this.container.appendChild(this.pauseMenu);
+            
+            document.getElementById('resume-btn')?.addEventListener('click', () => EventBus.emit('resume_game'));
+            document.getElementById('quit-btn')?.addEventListener('click', () => {
+                EventBus.emit('back_to_menu');
+                if (this.hudElement) this.hudElement.remove();
+                if (this.pauseMenu) this.pauseMenu.remove();
+            });
+        }
     }
 
     private updateValues(data: any) {

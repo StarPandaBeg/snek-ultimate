@@ -5,17 +5,21 @@ export class AssetLoader {
 
     static async loadAll(): Promise<void> {
         const assets = [
-            { name: 'apple', url: '/src/assets/food_apple.png' },
-            { name: 'banana', url: '/src/assets/food_banana.png' },
-            { name: 'cherry', url: '/src/assets/food_cherry.png' },
-            { name: 'crate_wood', url: '/src/assets/crate_wood.png' },
-            { name: 'crate_metal', url: '/src/assets/crate_metal.png' },
-            { name: 'snake_head', url: '/src/assets/snake_head.png' },
-            { name: 'snake_body', url: '/src/assets/snake_block.png' },
-            { name: 'portal_base', url: '/src/assets/portal_base.png' },
-            { name: 'portal_glow', url: '/src/assets/portal_glow.png' },
-            { name: 'tiles', url: '/src/assets/tiles.png' },
-            { name: 'grass', url: '/src/assets/grass.png' }
+            { name: 'apple', url: './src/assets/food_apple.png' },
+            { name: 'banana', url: './src/assets/food_banana.png' },
+            { name: 'cherry', url: './src/assets/food_cherry.png' },
+            { name: 'pear', url: './src/assets/food_pear.png' },
+            { name: 'golden_apple', url: './src/assets/food_golden_apple.png' },
+            { name: 'watermelon', url: './src/assets/food_watermelon.png' },
+            { name: 'poison', url: './src/assets/food_poison.png' },
+            { name: 'crate_wood', url: './src/assets/crate_wood.png' },
+            { name: 'crate_metal', url: './src/assets/crate_metal.png' },
+            { name: 'snake_head', url: './src/assets/snake_head.png' },
+            { name: 'snake_body', url: './src/assets/snake_block.png' },
+            { name: 'portal_base', url: './src/assets/portal_base.png' },
+            { name: 'portal_glow', url: './src/assets/portal_glow.png' },
+            { name: 'tiles', url: './src/assets/tiles.png' },
+            { name: 'grass', url: './src/assets/grass.png' }
         ];
 
         this.totalAssets = assets.length;

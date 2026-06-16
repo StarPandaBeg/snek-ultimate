@@ -185,8 +185,10 @@ export class Renderer {
         foods.forEach((food) => {
             const imgName = this.getFoodImageName(food.type);
             const img = AssetLoader.getImage(imgName);
-            const size = this.cellSize * 0.8;
-            const margin = (this.cellSize - size) / 2;
+            
+            const isWatermelon = food.type === FoodType.WATERMELON;
+            const size = isWatermelon ? this.cellSize * 1.8 : this.cellSize * 0.8;
+            const margin = isWatermelon ? this.cellSize * 0.1 : (this.cellSize - size) / 2;
             const drawX = offsetX + food.pos.x * this.cellSize + margin;
             const drawY = offsetY + food.pos.y * this.cellSize + margin;
 
@@ -198,7 +200,11 @@ export class Renderer {
                 this.ctx.shadowBlur = 10;
                 this.ctx.shadowColor = color;
                 this.ctx.beginPath();
-                this.ctx.arc(drawX + size / 2, drawY + size / 2, size / 2.5, 0, Math.PI * 2);
+                if (isWatermelon) {
+                    this.ctx.roundRect(drawX, drawY, size, size, size * 0.4);
+                } else {
+                    this.ctx.arc(drawX + size / 2, drawY + size / 2, size / 2.5, 0, Math.PI * 2);
+                }
                 this.ctx.fill();
                 this.ctx.shadowBlur = 0;
             }
@@ -210,6 +216,10 @@ export class Renderer {
             case FoodType.APPLE: return 'apple';
             case FoodType.BANANA: return 'banana';
             case FoodType.CHERRY: return 'cherry';
+            case FoodType.GOLDEN_APPLE: return 'golden_apple';
+            case FoodType.WATERMELON: return 'watermelon';
+            case FoodType.PEAR: return 'pear';
+            case FoodType.POISON_MUSHROOM: return 'poison';
             default: return 'apple';
         }
     }

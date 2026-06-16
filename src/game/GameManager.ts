@@ -14,7 +14,7 @@ export class GameManager {
     private inputManager: InputManager;
     private mapManager: MapManager;
     private snake!: Snake;
-    private foods: { pos: Point, type: FoodType }[] = [];
+    private foods: { pos: Point, type: FoodType, lifeTime?: number }[] = [];
     private obstacles: { pos: Point, type: 'wood' | 'iron' }[] = [];
     private portals: { pos: Point, color: string, partnerIdx: number }[] = [];
     private score: number = 0;
@@ -101,9 +101,28 @@ export class GameManager {
         const settings = Settings.get();
         const maxFood = FoodQuantityMap[settings.foodQuantity];
         while (this.foods.length < maxFood) {
-            const pos = this.mapManager.getRandomWalkableCell();
-            if (this.isCellEmpty(pos)) {
-                this.foods.push({ pos, type: this.getRandomFoodType() });
+            const type = this.getRandomFoodType();
+            let pos = this.mapManager.getRandomWalkableCell();
+            
+            // For watermelon (2x2), we need 4 empty cells
+            if (type === FoodType.WATERMELON) {
+                let found = false;
+                for (let attempts = 0; attempts < 50; attempts++) {
+                    pos = this.mapManager.getRandomWalkableCell();
+                    if (this.isCellEmpty(pos) &&
+                        this.isCellEmpty({ x: pos.x + 1, y: pos.y }) &&
+                        this.isCellEmpty({ x: pos.x, y: pos.y + 1 }) &&
+                        this.isCellEmpty({ x: pos.x + 1, y: pos.y + 1 })) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) continue; // skip spawning watermelon if no space
+                this.foods.push({ pos, type, lifeTime: 15000 }); // 15 seconds lifetime
+            } else {
+                if (this.isCellEmpty(pos)) {
+                    this.foods.push({ pos, type });
+                }
             }
         }
     }
@@ -143,6 +162,17 @@ export class GameManager {
         this.renderer.particles.update(dt);
         
         if (this.state === GameState.PLAYING) {
+            // Update food lifetimes
+            for (let i = this.foods.length - 1; i >= 0; i--) {
+                if (this.foods[i].lifeTime !== undefined) {
+                    this.foods[i].lifeTime! -= dt;
+                    if (this.foods[i].lifeTime! <= 0) {
+                        this.foods.splice(i, 1);
+                        this.spawnFood(); // Spawn a new one to replace it
+                    }
+                }
+            }
+
             if (!this.inputManager.isMoving()) return;
 
             const settings = Settings.get();
@@ -248,7 +278,14 @@ export class GameManager {
             }
         }
 
-        const foodIdx = this.foods.findIndex(f => f.pos.x === nextHead.x && f.pos.y === nextHead.y);
+        const foodIdx = this.foods.findIndex(f => {
+            if (f.type === FoodType.WATERMELON) {
+                return (nextHead.x === f.pos.x || nextHead.x === f.pos.x + 1) && 
+                       (nextHead.y === f.pos.y || nextHead.y === f.pos.y + 1);
+            }
+            return f.pos.x === nextHead.x && f.pos.y === nextHead.y;
+        });
+        
         if (foodIdx !== -1) {
             const food = this.foods[foodIdx];
             this.applyFoodEffect(food.type);
