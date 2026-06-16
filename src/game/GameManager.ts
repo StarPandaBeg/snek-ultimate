@@ -186,7 +186,7 @@ export class GameManager {
         }
         if (!found) continue; // skip spawning watermelon if no space
         this.foods.push({ pos, type, lifeTime: 8000 }); // 8 seconds lifetime
-      } else if (type === FoodType.GOLDEN_APPLE) {
+      } else if (type === FoodType.GOLDEN_APPLE || type === FoodType.POISON_MUSHROOM) {
         if (this.isCellEmpty(pos)) {
           this.foods.push({ pos, type, lifeTime: 8000 }); // 8 seconds lifetime
         }
@@ -317,7 +317,7 @@ export class GameManager {
       this.moveTimer += dt;
 
       if (this.moveTimer >= speed) {
-        this.moveTimer = 0;
+        this.moveTimer -= speed;
         this.tick();
       }
 

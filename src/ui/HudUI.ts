@@ -35,6 +35,9 @@ export class HudUI {
         this.hudElement = document.createElement('div');
         this.hudElement.className = 'hud-container-new';
         this.hudElement.innerHTML = `
+            <div class="hud-left">
+                <div id="hud-status" class="hud-status-text"></div>
+            </div>
             <div class="hud-center">
                 <div class="hud-score-label">СЧЕТ</div>
                 <div id="hud-score" class="hud-score-value">0</div>
@@ -90,6 +93,7 @@ export class HudUI {
         const highscoreEl = document.getElementById('hud-highscore');
         const lengthEl = document.getElementById('hud-length');
         const timeEl = document.getElementById('hud-time');
+        const statusEl = document.getElementById('hud-status');
         
         if (scoreEl) scoreEl.innerText = data.score.toString();
         if (highscoreEl) highscoreEl.innerText = data.highscore.toString();
@@ -99,6 +103,11 @@ export class HudUI {
             const mins = Math.floor(data.playTime / 60);
             const secs = data.playTime % 60;
             timeEl.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        if (statusEl && data.status !== undefined) {
+            statusEl.innerText = data.status;
+            statusEl.style.display = data.status ? 'block' : 'none';
         }
     }
 
