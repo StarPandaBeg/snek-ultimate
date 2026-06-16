@@ -295,7 +295,7 @@ export class Renderer {
         return canvas;
     }
 
-    private getFoodColor(type: FoodType): string {
+    public getFoodColor(type: FoodType): string {
         switch (type) {
             case FoodType.APPLE: return '#ff4d4d';
             case FoodType.BANANA: return '#ffff4d';

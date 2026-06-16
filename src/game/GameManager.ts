@@ -289,7 +289,7 @@ export class GameManager {
         if (foodIdx !== -1) {
             const food = this.foods[foodIdx];
             this.applyFoodEffect(food.type);
-            this.renderer.particles.emit(food.pos, '#00ff88', 15);
+            this.renderer.particles.emit(food.pos, this.renderer.getFoodColor(food.type), 15);
             AudioManager.playEat();
             this.foods.splice(foodIdx, 1);
             this.spawnFood();
