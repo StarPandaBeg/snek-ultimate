@@ -13,6 +13,7 @@ export class InputManager {
     private touchStart: Point | null = null;
     private hasMoved: boolean = false;
     private isSprintingActive: boolean = false;
+    private isEnabled: boolean = true;
 
     constructor() {
         window.addEventListener('keydown', this.handleKeyDown);
@@ -23,6 +24,7 @@ export class InputManager {
     }
 
     private handleKeyDown = (e: KeyboardEvent) => {
+        if (!this.isEnabled) return;
         if (e.shiftKey) this.isSprintingActive = true;
 
         let newDir: Direction | null = null;
@@ -70,6 +72,7 @@ export class InputManager {
     }
 
     private handleTouchStart = (e: TouchEvent) => {
+        if (!this.isEnabled) return;
         if (e.touches.length > 0) {
             this.touchStart = {
                 x: e.touches[0].clientX,
@@ -79,7 +82,7 @@ export class InputManager {
     };
 
     private handleTouchEnd = (e: TouchEvent) => {
-        if (!this.touchStart || e.changedTouches.length === 0) return;
+        if (!this.isEnabled || !this.touchStart || e.changedTouches.length === 0) return;
 
         const touchEnd = {
             x: e.changedTouches[0].clientX,
@@ -118,7 +121,14 @@ export class InputManager {
     }
 
     isSprinting(): boolean {
-        return this.isSprintingActive;
+        return this.isSprintingActive && this.isEnabled;
+    }
+
+    setEnabled(value: boolean) {
+        this.isEnabled = value;
+        if (!value) {
+            this.isSprintingActive = false;
+        }
     }
 
     clearQueue() {
@@ -130,5 +140,6 @@ export class InputManager {
         this.inputQueue = [];
         this.hasMoved = false;
         this.isSprintingActive = false;
+        this.isEnabled = true;
     }
 }

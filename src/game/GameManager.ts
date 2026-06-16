@@ -44,10 +44,13 @@ export class GameManager {
     this.highscore = parseInt(localStorage.getItem("snake_highscore") || "0");
 
     EventBus.on("start_game", () => this.start());
-    EventBus.on("pause_game", () => this.togglePause());
-    EventBus.on("resume_game", () => this.togglePause());
+    EventBus.on("pause_game", () => this.handlePause());
+    EventBus.on("resume_game", () => this.handleResume());
     EventBus.on("restart_game", () => this.start());
-    EventBus.on("back_to_menu", () => (this.state = GameState.MENU));
+    EventBus.on("back_to_menu", () => {
+      this.state = GameState.MENU;
+      this.inputManager.setEnabled(true);
+    });
 
     window.addEventListener("keydown", (e) => {
       if (e.key.toLowerCase() === "p") {
@@ -241,20 +244,26 @@ export class GameManager {
     return true;
   }
 
-  private togglePause() {
+  private handlePause() {
     if (this.state === GameState.PLAYING) {
       this.state = GameState.PAUSED;
+      this.inputManager.setEnabled(false);
       EventBus.emit("ui_update", {
         score: Math.floor(this.score),
         highscore: this.highscore,
         length: this.snake.getBody().length,
         playTime: Math.floor(this.playTime / 1000),
-        isSprinting: this.inputManager.isSprinting(),
+        isSprinting: false,
         isSpedUp: this.speedBoostTimer > 0,
         isSlowedDown: this.slowDownTimer > 0,
       });
-    } else if (this.state === GameState.PAUSED) {
+    }
+  }
+
+  private handleResume() {
+    if (this.state === GameState.PAUSED) {
       this.state = GameState.PLAYING;
+      this.inputManager.setEnabled(true);
       this.inputManager.clearQueue(); // Don't buffer keys from pause
     }
   }
@@ -316,11 +325,12 @@ export class GameManager {
       let speedMultiplier = 1.0;
       if (this.speedBoostTimer > 0) speedMultiplier *= 0.8;
       if (this.slowDownTimer > 0) speedMultiplier *= 1.5;
+
       if (this.inputManager.isSprinting() && this.slowDownTimer <= 0) {
-        speedMultiplier *= 0.75; // Balanced speed boost
-        this.score = Math.max(0, this.score - 0.5); // Faster drain for better UI feedback
+        speedMultiplier *= 0.75; // Moderate speed boost
+        this.score = Math.max(0, this.score - 0.5); // Continuous drain
       } else {
-        this.score += 0.05; // Visible steady gain
+        this.score += 0.05; // Continuous gain
       }
 
       const speed = baseSpeed * speedMultiplier;
