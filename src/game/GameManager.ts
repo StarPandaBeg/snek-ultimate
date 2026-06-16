@@ -41,8 +41,10 @@ export class GameManager {
 
         window.addEventListener('keydown', (e) => {
             if (e.key.toLowerCase() === 'p') {
-                if (this.state === GameState.PLAYING || this.state === GameState.PAUSED) {
-                    this.togglePause();
+                if (this.state === GameState.PLAYING) {
+                    EventBus.emit('pause_game');
+                } else if (this.state === GameState.PAUSED) {
+                    EventBus.emit('resume_game');
                 }
             }
             if (e.key.toLowerCase() === 'r') {
@@ -244,7 +246,7 @@ export class GameManager {
 
             const settings = Settings.get();
             const baseSpeed = GameSpeedMap[settings.speed];
-            const speed = this.speedBoostTimer > 0 ? baseSpeed * 0.6 : baseSpeed;
+            const speed = this.speedBoostTimer > 0 ? baseSpeed * 0.8 : baseSpeed; // 20% faster
             this.moveTimer += dt;
 
             if (this.moveTimer >= speed) {
