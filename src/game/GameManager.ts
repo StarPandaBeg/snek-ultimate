@@ -24,6 +24,7 @@ export class GameManager {
     private moveTimer: number = 0;
     private explosionIndex: number = -1;
     private explosionTimer: number = 0;
+    private speedBoostTimer: number = 0;
 
     constructor(private renderer: Renderer) {
         this.inputManager = new InputManager();
@@ -68,6 +69,7 @@ export class GameManager {
         this.playTime = 0;
         this.moveTimer = 0;
         this.explosionIndex = -1;
+        this.speedBoostTimer = 0;
         
         this.generateEntities();
         
@@ -143,6 +145,10 @@ export class GameManager {
                 }
                 if (!found) continue; // skip spawning watermelon if no space
                 this.foods.push({ pos, type, lifeTime: 8000 }); // 8 seconds lifetime
+            } else if (type === FoodType.GOLDEN_APPLE) {
+                if (this.isCellEmpty(pos)) {
+                    this.foods.push({ pos, type, lifeTime: 8000 }); // 8 seconds lifetime
+                }
             } else {
                 if (this.isCellEmpty(pos)) {
                     this.foods.push({ pos, type });
@@ -166,8 +172,14 @@ export class GameManager {
     }
 
     private isCellEmpty(pos: Point): boolean {
+        if (!this.mapManager.isWalkable(pos.x, pos.y)) return false;
         if (this.snake.checkCollision(pos) !== -1) return false;
-        if (this.foods.some(f => f.pos.x === pos.x && f.pos.y === pos.y)) return false;
+        if (this.foods.some(f => {
+            if (f.type === FoodType.WATERMELON) {
+                return pos.x >= f.pos.x && pos.x <= f.pos.x + 1 && pos.y >= f.pos.y && pos.y <= f.pos.y + 1;
+            }
+            return f.pos.x === pos.x && f.pos.y === pos.y;
+        })) return false;
         if (this.obstacles.some(o => o.pos.x === pos.x && o.pos.y === pos.y)) return false;
         if (this.portals.some(p => p.pos.x === pos.x && p.pos.y === pos.y)) return false;
         return true;
@@ -176,6 +188,7 @@ export class GameManager {
     private togglePause() {
         if (this.state === GameState.PLAYING) {
             this.state = GameState.PAUSED;
+            EventBus.emit('ui_update', { score: this.score, highscore: this.highscore, length: this.snake.getBody().length, playTime: Math.floor(this.playTime / 1000) });
         } else if (this.state === GameState.PAUSED) {
             this.state = GameState.PLAYING;
         }
@@ -210,6 +223,13 @@ export class GameManager {
             if (!this.inputManager.isMoving()) return;
 
             this.playTime += dt;
+            
+            if (this.speedBoostTimer > 0) {
+                this.speedBoostTimer -= dt;
+                if (Math.random() > 0.8) {
+                    this.renderer.particles.emit(this.snake.getHead(), '#00d4ff', 1);
+                }
+            }
 
             // Update food lifetimes
             for (let i = this.foods.length - 1; i >= 0; i--) {
@@ -223,7 +243,8 @@ export class GameManager {
             }
 
             const settings = Settings.get();
-            const speed = GameSpeedMap[settings.speed];
+            const baseSpeed = GameSpeedMap[settings.speed];
+            const speed = this.speedBoostTimer > 0 ? baseSpeed * 0.6 : baseSpeed;
             this.moveTimer += dt;
 
             if (this.moveTimer >= speed) {
@@ -241,9 +262,8 @@ export class GameManager {
         }
     };
 
-    private tick() {
-        const dir = this.inputManager.getDirection();
-        const head = this.snake.getHead();
+    private getNextPosition(head: Point, dir: Direction, isInfinite: boolean): Point | null {
+        const { width, height } = this.mapManager.getDimensions();
         let nextHead = { ...head };
 
         switch (dir) {
@@ -253,47 +273,58 @@ export class GameManager {
             case Direction.RIGHT: nextHead.x++; break;
         }
 
-        const settings = Settings.get();
-        const { width, height } = this.mapManager.getDimensions();
+        if (nextHead.x < 0 || nextHead.x >= width || nextHead.y < 0 || nextHead.y >= height || !this.mapManager.isWalkable(nextHead.x, nextHead.y)) {
+            if (!isInfinite) return null;
+            
+            let wrapped = false;
+            if (dir === Direction.LEFT) {
+                for (let x = width - 1; x > head.x; x--) {
+                    if (this.mapManager.isWalkable(x, head.y)) { nextHead.x = x; wrapped = true; break; }
+                }
+            } else if (dir === Direction.RIGHT) {
+                for (let x = 0; x < head.x; x++) {
+                    if (this.mapManager.isWalkable(x, head.y)) { nextHead.x = x; wrapped = true; break; }
+                }
+            } else if (dir === Direction.UP) {
+                for (let y = height - 1; y > head.y; y--) {
+                    if (this.mapManager.isWalkable(head.x, y)) { nextHead.y = y; wrapped = true; break; }
+                }
+            } else if (dir === Direction.DOWN) {
+                for (let y = 0; y < head.y; y++) {
+                    if (this.mapManager.isWalkable(head.x, y)) { nextHead.y = y; wrapped = true; break; }
+                }
+            }
+            if (!wrapped) return null;
+        }
+        return nextHead;
+    }
 
-        if (settings.isInfinite) {
-            nextHead.x = (nextHead.x + width) % width;
-            nextHead.y = (nextHead.y + height) % height;
-            if (!this.mapManager.isWalkable(nextHead.x, nextHead.y)) {
-                this.gameOver();
-                return;
-            }
-        } else {
-            if (nextHead.x < 0 || nextHead.x >= width || nextHead.y < 0 || nextHead.y >= height || !this.mapManager.isWalkable(nextHead.x, nextHead.y)) {
-                this.gameOver();
-                return;
-            }
+    private tick() {
+        const dir = this.inputManager.getDirection();
+        const head = this.snake.getHead();
+        const settings = Settings.get();
+
+        let nextHead = this.getNextPosition(head, dir, settings.isInfinite);
+
+        if (!nextHead) {
+            this.gameOver();
+            return;
         }
 
-        const portal = this.portals.find(p => p.pos.x === nextHead.x && p.pos.y === nextHead.y);
+        const portal = this.portals.find(p => p.pos.x === nextHead!.x && p.pos.y === nextHead!.y);
         if (portal) {
             AudioManager.playPortal();
             const partner = this.portals[portal.partnerIdx];
             if (partner) {
-                nextHead = { ...partner.pos };
-                switch (dir) {
-                    case Direction.UP: nextHead.y--; break;
-                    case Direction.DOWN: nextHead.y++; break;
-                    case Direction.LEFT: nextHead.x--; break;
-                    case Direction.RIGHT: nextHead.x++; break;
-                }
-                if (settings.isInfinite) {
-                    nextHead.x = (nextHead.x + width) % width;
-                    nextHead.y = (nextHead.y + height) % height;
-                }
-                if (!this.mapManager.isWalkable(nextHead.x, nextHead.y)) {
+                nextHead = this.getNextPosition(partner.pos, dir, settings.isInfinite);
+                if (!nextHead) {
                     this.gameOver();
                     return;
                 }
             }
         }
 
-        const obstacleIdx = this.obstacles.findIndex(o => o.pos.x === nextHead.x && o.pos.y === nextHead.y);
+        const obstacleIdx = this.obstacles.findIndex(o => o.pos.x === nextHead!.x && o.pos.y === nextHead!.y);
         if (obstacleIdx !== -1) {
             const obs = this.obstacles[obstacleIdx];
             if (obs.type === 'wood') {
@@ -301,7 +332,7 @@ export class GameManager {
                 if (this.snake.getBody().length > 2) {
                     this.snake.shrink(1);
                     this.obstacles.splice(obstacleIdx, 1);
-                    this.renderer.particles.emit(nextHead, '#d35400', 10);
+                    this.renderer.particles.emit(nextHead!, '#d35400', 10);
                     this.score -= 20;
                     AudioManager.playHit();
                 } else {
@@ -314,7 +345,7 @@ export class GameManager {
             }
         }
 
-        const selfIdx = this.snake.checkCollision(nextHead);
+        const selfIdx = this.snake.checkCollision(nextHead!);
         if (selfIdx !== -1) {
             if (settings.biteTail) {
                 AudioManager.playHit();
@@ -328,10 +359,10 @@ export class GameManager {
 
         const foodIdx = this.foods.findIndex(f => {
             if (f.type === FoodType.WATERMELON) {
-                return (nextHead.x === f.pos.x || nextHead.x === f.pos.x + 1) && 
-                       (nextHead.y === f.pos.y || nextHead.y === f.pos.y + 1);
+                return (nextHead!.x === f.pos.x || nextHead!.x === f.pos.x + 1) && 
+                       (nextHead!.y === f.pos.y || nextHead!.y === f.pos.y + 1);
             }
-            return f.pos.x === nextHead.x && f.pos.y === nextHead.y;
+            return f.pos.x === nextHead!.x && f.pos.y === nextHead!.y;
         });
         
         if (foodIdx !== -1) {
@@ -353,7 +384,7 @@ export class GameManager {
             EventBus.emit('food_eaten', { type: food.type, score: this.score });
         }
 
-        this.snake.move(nextHead);
+        this.snake.move(nextHead!);
         this.score += 1;
         if (this.score > this.highscore) {
             this.highscore = this.score;
@@ -367,7 +398,10 @@ export class GameManager {
             case FoodType.CHERRY: this.snake.grow(2); break;
             case FoodType.BANANA: this.snake.grow(3); break;
             case FoodType.PEAR: this.snake.grow(1); break;
-            case FoodType.WATERMELON: this.snake.grow(5); break;
+            case FoodType.WATERMELON: 
+                this.speedBoostTimer = 10000;
+                this.score += 50;
+                break;
             case FoodType.GOLDEN_APPLE: 
                 this.snake.grow(10);
                 this.score += 100;
